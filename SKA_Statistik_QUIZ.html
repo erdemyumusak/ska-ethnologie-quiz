@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKA & Ethnologie — Statistik 1950–2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js">
+const HLS = ["SoSe 1982: 1.273 Studierende - der historische Hoechststand. In 12 Jahren wuchs die Zahl von 51 auf das 25-Fache.","Von ~1.300 SKA-Bachelor-Studierenden seit 2006 haben 567 abgeschlossen (44%). Im BA VWL liegt die Quote bei 35%.","Der Frauenanteil stieg von 35% (WiSe 72/73) auf 82% (WiSe 12/13) und liegt heute bei 75-80%.","Die durchschnittliche Studiendauer im SKA Bachelor betraegt 8,5 Semester - die Regelstudienzeit ist 6.","Der Auslaenderanteil stieg von 5% in den 1970ern auf 24% im WiSe 25/26 - ein historischer Hoechststand.","Ab WiSe 18/19 waren keine Studierenden mehr im Magister eingeschrieben.","Im WiSe 17/18 schloss jemand nach 50,5 Semestern ab - das sind etwa 25 Jahre.","Im PhD-Programm sind inzwischen ueber 60% internationale Studierende."];
+let _hi = 0;
+function hlNav(d) {
+  _hi = (_hi + d + HLS.length) % HLS.length;
+  document.getElementById('hl-t').textContent = HLS[_hi];
+  document.getElementById('hl-c').textContent = (_hi+1) + '/' + HLS.length;
+}
+hlNav(0);
+</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:#0f0f10; --surface:#18181b; --border:#2a2a30;
+    --text:#e8e6e0; --muted:#7a7870;
+    --total:#5b9cf6; --bach:#34d399; --mast:#fb923c; --mag:#a78bfa; --phd:#fbbf24;
+  }
+  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; font-size:15px; line-height:1.6; min-height:100vh; }
+  header { padding:3rem 3rem 2rem; border-bottom:1px solid var(--border); display:flex; align-items:flex-end; justify-content:space-between; gap:2rem; flex-wrap:wrap; }
+  .header-title h1 { font-family:'DM Serif Display',serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:400; letter-spacing:-0.02em; line-height:1.1; }
+  .header-title h1 em { font-style:italic; color:var(--total); }
+  .header-title p { margin-top:0.5rem; color:var(--muted); font-size:13px; font-family:'DM Mono',monospace; letter-spacing:0.04em; }
+  .legend-global { display:flex; flex-wrap:wrap; gap:1rem; font-size:12px; font-family:'DM Mono',monospace; }
+  .leg-item { display:flex; align-items:center; gap:6px; color:var(--muted); }
+  .leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  nav { padding:0 3rem; border-bottom:1px solid var(--border); display:flex; gap:0; overflow-x:auto; }
+  nav button { background:none; border:none; border-bottom:2px solid transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:13px; padding:1rem 1.5rem; cursor:pointer; white-space:nowrap; transition:color 0.2s,border-color 0.2s; }
+  nav button:hover { color:var(--text); }
+  nav button.active { color:var(--text); border-bottom-color:var(--total); font-weight:500; }
+  main { padding:2.5rem 3rem; }
+  .section { display:none; }
+  .section.active { display:block; }
+  .section-header { margin-bottom:2rem; }
+  .section-header h2 { font-family:'DM Serif Display',serif; font-size:1.6rem; font-weight:400; letter-spacing:-0.01em; }
+  .section-header p { margin-top:0.3rem; color:var(--muted); font-size:13px; }
+  .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:2.5rem; }
+  .metric { background:var(--surface); padding:1.2rem 1.4rem; }
+  .metric .val { font-family:'DM Mono',monospace; font-size:1.8rem; font-weight:500; letter-spacing:-0.02em; }
+  .metric .lbl { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:0.04em; text-transform:uppercase; }
+  .metric .dot { width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:5px; vertical-align:middle; }
+  .chart-grid { display:grid; grid-template-columns:1fr; gap:1.5rem; }
+  .chart-grid.two-col { grid-template-columns:repeat(auto-fit,minmax(500px,1fr)); }
+  .chart-box { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1.5rem 1.5rem 1rem; }
+  .chart-box h3 { font-size:12px; font-family:'DM Mono',monospace; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:1.2rem; }
+  .chart-wrap { position:relative; width:100%; }
+  .note-bar { margin-top:0.8rem; font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; }
+
+@media(max-width:600px){
+  header{padding:.8rem 1rem .6rem;flex-direction:column;align-items:flex-start}
+  header h1{font-size:1.2rem}
+  .legend-global{gap:.5rem;font-size:11px}
+  nav{padding:0 .3rem}
+  nav button{padding:.65rem .55rem;font-size:.68rem}
+  main{padding:1rem}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .metric .val{font-size:1.2rem}
+  .chart-grid.two-col{grid-template-columns:1fr}
+  .chart-wrap{height:200px!important}
+}
+.back-btn{display:inline-block;font-size:.75rem;color:#7a7870;text-decoration:none;padding:.4rem 0;margin-bottom:.3rem}
+.back-btn:hover{color:#378ADD}
+.intro-box{background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-left:3px solid #378ADD;border-radius:0 8px 8px 0;padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:.82rem;line-height:1.65;color:#c8c4bc}
+.hl-box{background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.5rem}
+.hl-label{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7870;margin-bottom:.6rem}
+.hl-text{font-size:.85rem;line-height:1.6;min-height:2.5em;color:#e8e6e0}
+.hl-nav{display:flex;gap:.4rem;margin-top:.6rem;align-items:center}
+.hl-nav button{background:none;border:1px solid #2a2a30;border-radius:4px;padding:.2rem .55rem;cursor:pointer;font-size:.75rem;color:#7a7870}
+.hl-nav button:hover{border-color:#378ADD;color:#378ADD}
+.hl-nav span{font-size:.7rem;color:#7a7870;margin-left:.3rem}
+
+.qcard{background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:1.2rem;margin-bottom:1rem}
+.qnum{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7870;margin-bottom:.5rem}
+.qtxt{font-size:.9rem;font-weight:600;line-height:1.5;margin-bottom:1rem;color:#e8e6e0}
+.qopts{display:flex;flex-direction:column;gap:.45rem}
+.qopt{padding:.65rem 1rem;border:1px solid #2a2a30;border-radius:6px;cursor:pointer;font-size:.85rem;background:#0f0f10;color:#e8e6e0;text-align:left;line-height:1.4;transition:border-color .15s}
+.qopt:hover:not(:disabled){border-color:#378ADD;background:#18181b}
+.qopt.ok{background:#064e3b;border-color:#059669;color:#d1fae5;font-weight:600}
+.qopt.no{background:#7f1d1d;border-color:#dc2626;color:#fee2e2}
+.qopt.sh{background:#064e3b;border-color:#059669;color:#d1fae5;opacity:.65}
+.qopt:disabled{cursor:default}
+.qfb{margin-top:.8rem;font-size:.82rem;line-height:1.55;padding:.6rem .8rem;border-radius:6px;display:none}
+.qfb.on{display:block}.qfb.ok{background:#064e3b;color:#d1fae5}.qfb.no{background:#7f1d1d;color:#fee2e2}
+.qnav-row{display:flex;justify-content:space-between;align-items:center;margin-top:.8rem}
+.qnxt{padding:.45rem 1rem;background:#378ADD;color:#fff;border:none;border-radius:6px;font-size:.8rem;cursor:pointer;display:none}
+.qprog{font-size:.72rem;color:#7a7870}
+.qscore{text-align:center;padding:2.5rem 1rem}
+.qscore .big{font-size:2.5rem;font-weight:700;color:#378ADD;display:block;margin-bottom:.4rem}
+.qscore .msg{font-size:1rem;color:#e8e6e0;margin-bottom:1.5rem;display:block}
+.qrestart{padding:.6rem 1.4rem;background:#378ADD;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <a class="back-btn" href="https://erdemyumusak.github.io/ska-ethnologie/">← Zurück zur Übersicht</a>
+  <div class="header-title">
+    <h1>SKA &amp; <em>Ethnologie</em><br>Statistik 1950–2025</h1>
+    <p>Freie Universität Berlin · Semesterweise Daten</p>
+  </div>
+  <div class="legend-global">
+    <div class="leg-item"><span class="leg-dot" style="background:var(--total)"></span>Gesamt</div>
+    <div class="leg-item"><span class="leg-dot" style="background:var(--bach)"></span>SKA Bachelor</div>
+    <div class="leg-item"><span class="leg-dot" style="background:var(--mast)"></span>SKA Master</div>
+    <div class="leg-item"><span class="leg-dot" style="background:var(--mag)"></span>Ethnologie Mag.</div>
+    <div class="leg-item"><span class="leg-dot" style="background:var(--phd)"></span>Promotion</div>
+  </div>
+</header>
+<nav>
+  <button class="active" onclick="show('enroll',this)">Studierende</button>
+  <button onclick="show('gender',this)">Frauenanteil</button>
+  <button onclick="show('intl',this)">Ausländeranteil</button>
+  <button onclick="show('grads',this)">Abschlüsse</button>
+  <button onclick="show('grade',this)">Noten</button>
+  <button onclick="show('dur',this)">Studiendauer</button>
+  <button onclick="show('quiz',this)">&#127919; Quiz</button>
+</nav>
+<main>
+<div class="intro-box">Dieses Dashboard entstand aus dem Wunsch, dem Institut f&uuml;r Sozial- und Kulturanthropologie der FU Berlin etwas zu hinterlassen. Die Zahlen stammen aus gedruckten Statistikheften der Zentralbibliothek (Signatur AL&nbsp;17800&nbsp;F862) und Online-PDFs der FU.</div>
+<div class="hl-box"><div class="hl-label">Wusstest du?</div><div class="hl-text" id="hl-t"></div><div class="hl-nav"><button onclick="hlNav(-1)">&#8592;</button><button onclick="hlNav(1)">&#8594;</button><span id="hl-c"></span></div></div>
+
+
+<div class="section active" id="s-enroll">
+  <div class="section-header">
+    <h2>Eingeschriebene Studierende</h2>
+    <p>Gesamtzahl aller Studierenden pro Semester, aufgeschlüsselt nach Studiengang</p>
+  </div>
+  <div class="metrics" id="m-enroll"></div>
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Alle Studiengänge — Gesamtverlauf</h3>
+      <div class="chart-wrap" style="height:360px"><canvas id="c-enroll-all"></canvas></div>
+    </div>
+  </div>
+  <div style="height:1.5rem"></div>
+  <div class="chart-grid two-col">
+    <div class="chart-box">
+      <h3>SKA Bachelor &amp; Master</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c-enroll-ska"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Ethnologie Magister</h3>
+      <div class="chart-wrap" style="height:240px"><canvas id="c-enroll-eth"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-gender">
+  <div class="section-header">
+    <h2>Frauenanteil</h2>
+    <p>Anteil weiblicher Studierender pro Semester in Prozent</p>
+  </div>
+  <div class="metrics" id="m-gender"></div>
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Frauenanteil aller Studiengänge im Vergleich</h3>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.8rem">Hinweis: Der Magister-Wert ab ca. 2013 basiert auf sehr wenigen verbliebenen Studierenden und ist statistisch nicht aussagekräftig.</p>
+      <div class="chart-wrap" style="height:360px"><canvas id="c-gender"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-intl">
+  <div class="section-header">
+    <h2>Ausländeranteil</h2>
+    <p>Anteil internationaler Studierender pro Semester in Prozent</p>
+  </div>
+  <div class="metrics" id="m-intl"></div>
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Ausländeranteil aller Studiengänge im Vergleich</h3>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.8rem">Hinweis: Der Magister-Wert ab ca. 2013 basiert auf sehr wenigen verbliebenen Studierenden und ist statistisch nicht aussagekräftig.</p>
+      <div class="chart-wrap" style="height:360px"><canvas id="c-intl"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-grads">
+  <div class="section-header">
+    <h2>Abschlüsse</h2>
+    <p>Anzahl der Abschlüsse pro Semester nach Studiengang</p>
+  </div>
+  <div class="metrics" id="m-grads"></div>
+  <div class="chart-grid two-col">
+    <div class="chart-box">
+      <h3>SKA Bachelor — Abschlüsse pro Semester</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c-grads-bach"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>SKA Master — Abschlüsse pro Semester</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c-grads-mast"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Ethnologie Magister — Abschlüsse pro Semester</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c-grads-mag"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Promotion (Ethnologie + SKA) — pro Semester</h3>
+      <div class="chart-wrap" style="height:260px"><canvas id="c-grads-phd"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-grade">
+  <div class="section-header">
+    <h2>Durchschnittsnoten</h2>
+    <p>Durchschnittliche Abschlussnote pro Semester (1,0 = sehr gut)</p>
+  </div>
+  <div class="metrics" id="m-grade"></div>
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Abschlussnoten im Vergleich</h3>
+      <div class="chart-wrap" style="height:360px"><canvas id="c-grade"></canvas></div>
+      <div class="note-bar">↓ Niedrigere Werte = bessere Noten</div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-dur">
+  <div class="section-header">
+    <h2>Studiendauer</h2>
+    <p>Durchschnittliche Anzahl an Semestern bis zum Abschluss</p>
+  </div>
+  <div class="metrics" id="m-dur"></div>
+  <div class="chart-grid two-col">
+    <div class="chart-box">
+      <h3>SKA Bachelor &amp; Master</h3>
+      <div class="chart-wrap" style="height:300px"><canvas id="c-dur-ska"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>Ethnologie Magister</h3>
+      <div class="chart-wrap" style="height:300px"><canvas id="c-dur-mag"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="s-quiz">
+  <div class="section-header"><h2>Quiz</h2><p>15 Fragen über das Institut — wie gut kennst du die Zahlen?</p></div>
+  <div id="qcon" style="margin-top:1rem"></div>
+</div>
+</main>
+<script>
+const D = {"ts_total":[{"x":1950,"sem":"SoSe 50","y":3},{"x":1950.5,"sem":"WiSe 50/51","y":5},{"x":1951,"sem":"SoSe 51","y":6},{"x":1951.5,"sem":"WiSe 51/52","y":9},{"x":1952,"sem":"SoSe 52","y":10},{"x":1952.5,"sem":"WiSe 52/53","y":10},{"x":1953,"sem":"SoSe 53","y":9},{"x":1953.5,"sem":"WiSe 53/54","y":9},{"x":1954,"sem":"SoSe 54","y":9},{"x":1954.5,"sem":"WiSe 54/55","y":9},{"x":1955,"sem":"SoSe 55","y":11},{"x":1955.5,"sem":"WiSe 55/56","y":12},{"x":1956,"sem":"SoSe 56","y":11},{"x":1956.5,"sem":"WiSe 56/57","y":10},{"x":1957,"sem":"SoSe 57","y":12},{"x":1957.5,"sem":"WiSe 57/58","y":15},{"x":1958,"sem":"SoSe 58","y":9},{"x":1958.5,"sem":"WiSe 58/59","y":12},{"x":1959,"sem":"SoSe 59","y":16},{"x":1959.5,"sem":"WiSe 59/60","y":10},{"x":1960,"sem":"SoSe 60","y":11},{"x":1960.5,"sem":"WiSe 60/61","y":12},{"x":1961,"sem":"SoSe 61","y":9},{"x":1961.5,"sem":"WiSe 61/62","y":13},{"x":1962,"sem":"SoSe 62","y":12},{"x":1962.5,"sem":"WiSe 62/63","y":13},{"x":1963,"sem":"SoSe 63","y":16},{"x":1963.5,"sem":"WiSe 63/64","y":19},{"x":1964,"sem":"SoSe 64","y":27},{"x":1964.5,"sem":"WiSe 64/65","y":26},{"x":1965,"sem":"SoSe 65","y":36},{"x":1965.5,"sem":"WiSe 65/66","y":39},{"x":1966,"sem":"SoSe 66","y":32},{"x":1966.5,"sem":"WiSe 66/67","y":32},{"x":1967,"sem":"SoSe 67","y":31},{"x":1967.5,"sem":"WiSe 67/68","y":42},{"x":1968,"sem":"SoSe 68","y":42},{"x":1969,"sem":"SoSe 69","y":51},{"x":1969.5,"sem":"WiSe 69/70","y":49},{"x":1970.5,"sem":"WiSe 70/71","y":51},{"x":1971,"sem":"SoSe 71","y":57},{"x":1971.5,"sem":"WiSe 71/72","y":59},{"x":1972,"sem":"SoSe 72","y":73},{"x":1972.5,"sem":"WiSe 72/73","y":84},{"x":1973,"sem":"SoSe 73","y":110},{"x":1973.5,"sem":"WiSe 73/74","y":125},{"x":1974,"sem":"SoSe 74","y":154},{"x":1974.5,"sem":"WiSe 74/75","y":192},{"x":1975,"sem":"SoSe 75","y":232},{"x":1975.5,"sem":"WiSe 75/76","y":265},{"x":1976,"sem":"SoSe 76","y":305},{"x":1976.5,"sem":"WiSe 76/77","y":347},{"x":1977,"sem":"SoSe 77","y":401},{"x":1977.5,"sem":"WiSe 77/78","y":450},{"x":1978,"sem":"SoSe 78","y":499},{"x":1978.5,"sem":"WiSe 78/79","y":598},{"x":1979,"sem":"SoSe 79","y":656},{"x":1979.5,"sem":"WiSe 79/80","y":747},{"x":1980,"sem":"SoSe 80","y":818},{"x":1980.5,"sem":"WiSe 80/81","y":922},{"x":1981,"sem":"SoSe 81","y":999},{"x":1981.5,"sem":"WiSe 81/82","y":1188},{"x":1982,"sem":"SoSe 82","y":1273},{"x":1982.5,"sem":"WiSe 82/83","y":1147},{"x":1983,"sem":"SoSe 83","y":1010},{"x":1983.5,"sem":"WiSe 83/84","y":880},{"x":1984,"sem":"SoSe 84","y":835},{"x":1984.5,"sem":"WiSe 84/85","y":804},{"x":1985,"sem":"SoSe 85","y":758},{"x":1985.5,"sem":"WiSe 85/86","y":721},{"x":1986,"sem":"SoSe 86","y":719},{"x":1986.5,"sem":"WiSe 86/87","y":707},{"x":1987,"sem":"SoSe 87","y":688},{"x":1987.5,"sem":"WiSe 87/88","y":678},{"x":1988,"sem":"SoSe 88","y":673},{"x":1988.5,"sem":"WiSe 88/89","y":678},{"x":1989,"sem":"SoSe 89","y":633},{"x":1989.5,"sem":"WiSe 89/90","y":636},{"x":1990,"sem":"SoSe 90","y":605},{"x":1990.5,"sem":"WiSe 90/91","y":610},{"x":1991,"sem":"SoSe 91","y":604},{"x":1991.5,"sem":"WiSe 91/92","y":598},{"x":1992,"sem":"SoSe 92","y":589},{"x":1992.5,"sem":"WiSe 92/93","y":588},{"x":1993,"sem":"SoSe 93","y":569},{"x":1993.5,"sem":"WiSe 93/94","y":566},{"x":1994,"sem":"SoSe 94","y":556},{"x":1994.5,"sem":"WiSe 94/95","y":511},{"x":1995,"sem":"SoSe 95","y":482},{"x":1995.5,"sem":"WiSe 95/96","y":499},{"x":1996.5,"sem":"WiSe 96/97","y":480},{"x":1997,"sem":"SoSe 97","y":472},{"x":1997.5,"sem":"WiSe 97/98","y":486},{"x":1998,"sem":"SoSe 98","y":485},{"x":1999,"sem":"SoSe 99","y":501},{"x":1999.5,"sem":"WiSe 99/00","y":513},{"x":2000,"sem":"SoSe 00","y":541},{"x":2000.5,"sem":"WiSe 00/01","y":536},{"x":2001,"sem":"SoSe 01","y":544},{"x":2001.5,"sem":"WiSe 01/02","y":539},{"x":2002,"sem":"SoSe 02","y":551},{"x":2002.5,"sem":"WiSe 02/03","y":531},{"x":2003,"sem":"SoSe 03","y":555},{"x":2003.5,"sem":"WiSe 03/04","y":566},{"x":2004,"sem":"SoSe 04","y":577},{"x":2004.5,"sem":"WiSe 04/05","y":671},{"x":2005,"sem":"SoSe 05","y":646},{"x":2005.5,"sem":"WiSe 05/06","y":546},{"x":2006,"sem":"SoSe 06","y":524},{"x":2006.5,"sem":"WiSe 06/07","y":533},{"x":2007,"sem":"SoSe 07","y":438},{"x":2007.5,"sem":"WiSe 07/08","y":445},{"x":2008,"sem":"SoSe 08","y":408},{"x":2008.5,"sem":"WiSe 08/09","y":424},{"x":2009,"sem":"SoSe 09","y":395},{"x":2009.5,"sem":"WiSe 09/10","y":414},{"x":2010,"sem":"SoSe 10","y":364},{"x":2010.5,"sem":"WiSe 10/11","y":387},{"x":2011,"sem":"SoSe 11","y":364},{"x":2011.5,"sem":"WiSe 11/12","y":409},{"x":2012,"sem":"SoSe 12","y":401},{"x":2012.5,"sem":"WiSe 12/13","y":415},{"x":2013,"sem":"SoSe 13","y":387},{"x":2013.5,"sem":"WiSe 13/14","y":454},{"x":2014,"sem":"SoSe 14","y":417},{"x":2014.5,"sem":"WiSe 14/15","y":468},{"x":2015,"sem":"SoSe 15","y":439},{"x":2015.5,"sem":"WiSe 15/16","y":486},{"x":2016,"sem":"SoSe 16","y":478},{"x":2016.5,"sem":"WiSe 16/17","y":505},{"x":2017,"sem":"SoSe 17","y":475},{"x":2017.5,"sem":"WiSe 17/18","y":536},{"x":2018,"sem":"SoSe 18","y":495},{"x":2018.5,"sem":"WiSe 18/19","y":524},{"x":2019,"sem":"SoSe 19","y":482},{"x":2019.5,"sem":"WiSe 19/20","y":517},{"x":2020,"sem":"SoSe 20","y":467},{"x":2020.5,"sem":"WiSe 20/21","y":516},{"x":2021,"sem":"SoSe 21","y":482},{"x":2021.5,"sem":"WiSe 21/22","y":516},{"x":2022,"sem":"SoSe 22","y":491},{"x":2022.5,"sem":"WiSe 22/23","y":496},{"x":2023,"sem":"SoSe 23","y":460},{"x":2023.5,"sem":"WiSe 23/24","y":466},{"x":2024,"sem":"SoSe 24","y":427},{"x":2024.5,"sem":"WiSe 24/25","y":462},{"x":2025,"sem":"SoSe 25","y":438},{"x":2025.5,"sem":"WiSe 25/26","y":460}],"ts_fem":[{"x":1972,"sem":"SoSe 72","y":36.99},{"x":1972.5,"sem":"WiSe 72/73","y":34.52},{"x":1973,"sem":"SoSe 73","y":37.27},{"x":1973.5,"sem":"WiSe 73/74","y":41.6},{"x":1974,"sem":"SoSe 74","y":40.91},{"x":1974.5,"sem":"WiSe 74/75","y":37.5},{"x":1975,"sem":"SoSe 75","y":40.09},{"x":1975.5,"sem":"WiSe 75/76","y":41.13},{"x":1976,"sem":"SoSe 76","y":43.28},{"x":1976.5,"sem":"WiSe 76/77","y":44.96},{"x":1977,"sem":"SoSe 77","y":51.12},{"x":1977.5,"sem":"WiSe 77/78","y":50.0},{"x":1978,"sem":"SoSe 78","y":45.29},{"x":1978.5,"sem":"WiSe 78/79","y":53.18},{"x":1979,"sem":"SoSe 79","y":54.12},{"x":1979.5,"sem":"WiSe 79/80","y":53.55},{"x":1980,"sem":"SoSe 80","y":53.42},{"x":1980.5,"sem":"WiSe 80/81","y":54.12},{"x":1981,"sem":"SoSe 81","y":54.25},{"x":1981.5,"sem":"WiSe 81/82","y":54.21},{"x":1982,"sem":"SoSe 82","y":53.89},{"x":1982.5,"sem":"WiSe 82/83","y":54.05},{"x":1983,"sem":"SoSe 83","y":52.97},{"x":1983.5,"sem":"WiSe 83/84","y":53.64},{"x":1984,"sem":"SoSe 84","y":54.61},{"x":1984.5,"sem":"WiSe 84/85","y":55.1},{"x":1985,"sem":"SoSe 85","y":55.01},{"x":1985.5,"sem":"WiSe 85/86","y":56.03},{"x":1986,"sem":"SoSe 86","y":57.02},{"x":1986.5,"sem":"WiSe 86/87","y":57.99},{"x":1987,"sem":"SoSe 87","y":57.56},{"x":1987.5,"sem":"WiSe 87/88","y":57.96},{"x":1988,"sem":"SoSe 88","y":58.25},{"x":1988.5,"sem":"WiSe 88/89","y":59.14},{"x":1989,"sem":"SoSe 89","y":61.14},{"x":1989.5,"sem":"WiSe 89/90","y":61.32},{"x":1990,"sem":"SoSe 90","y":62.31},{"x":1990.5,"sem":"WiSe 90/91","y":62.46},{"x":1991,"sem":"SoSe 91","y":62.42},{"x":1991.5,"sem":"WiSe 91/92","y":63.21},{"x":1992,"sem":"SoSe 92","y":64.18},{"x":1992.5,"sem":"WiSe 92/93","y":63.78},{"x":1993,"sem":"SoSe 93","y":61.34},{"x":1993.5,"sem":"WiSe 93/94","y":62.37},{"x":1994,"sem":"SoSe 94","y":63.13},{"x":1994.5,"sem":"WiSe 94/95","y":65.95},{"x":1995,"sem":"SoSe 95","y":68.46},{"x":1995.5,"sem":"WiSe 95/96","y":68.34},{"x":1996.5,"sem":"WiSe 96/97","y":68.33},{"x":1997,"sem":"SoSe 97","y":67.8},{"x":1997.5,"sem":"WiSe 97/98","y":73.25},{"x":1998,"sem":"SoSe 98","y":68.45},{"x":1999,"sem":"SoSe 99","y":70.86},{"x":1999.5,"sem":"WiSe 99/00","y":71.54},{"x":2000,"sem":"SoSe 00","y":73.75},{"x":2000.5,"sem":"WiSe 00/01","y":74.07},{"x":2001,"sem":"SoSe 01","y":74.63},{"x":2001.5,"sem":"WiSe 01/02","y":74.95},{"x":2002,"sem":"SoSe 02","y":74.41},{"x":2002.5,"sem":"WiSe 02/03","y":75.33},{"x":2003,"sem":"SoSe 03","y":75.5},{"x":2003.5,"sem":"WiSe 03/04","y":76.15},{"x":2004,"sem":"SoSe 04","y":74.87},{"x":2004.5,"sem":"WiSe 04/05","y":74.52},{"x":2005,"sem":"SoSe 05","y":73.99},{"x":2005.5,"sem":"WiSe 05/06","y":73.81},{"x":2006,"sem":"SoSe 06","y":73.47},{"x":2006.5,"sem":"WiSe 06/07","y":74.11},{"x":2009.5,"sem":"WiSe 09/10","y":77.05},{"x":2010,"sem":"SoSe 10","y":77.2},{"x":2010.5,"sem":"WiSe 10/11","y":80.1},{"x":2011,"sem":"SoSe 11","y":79.12},{"x":2011.5,"sem":"WiSe 11/12","y":79.46},{"x":2012,"sem":"SoSe 12","y":79.55},{"x":2012.5,"sem":"WiSe 12/13","y":82.17},{"x":2013,"sem":"SoSe 13","y":81.4},{"x":2013.5,"sem":"WiSe 13/14","y":82.38},{"x":2014,"sem":"SoSe 14","y":82.25},{"x":2014.5,"sem":"WiSe 14/15","y":81.84},{"x":2015,"sem":"SoSe 15","y":80.87},{"x":2015.5,"sem":"WiSe 15/16","y":80.25},{"x":2016,"sem":"SoSe 16","y":79.5},{"x":2016.5,"sem":"WiSe 16/17","y":79.6},{"x":2017,"sem":"SoSe 17","y":80.42},{"x":2017.5,"sem":"WiSe 17/18","y":80.78},{"x":2018,"sem":"SoSe 18","y":77.17},{"x":2018.5,"sem":"WiSe 18/19","y":80.53},{"x":2019,"sem":"SoSe 19","y":79.67},{"x":2019.5,"sem":"WiSe 19/20","y":79.3},{"x":2020,"sem":"SoSe 20","y":80.3},{"x":2020.5,"sem":"WiSe 20/21","y":81.2},{"x":2021,"sem":"SoSe 21","y":80.29},{"x":2021.5,"sem":"WiSe 21/22","y":79.26},{"x":2022,"sem":"SoSe 22","y":78.41},{"x":2022.5,"sem":"WiSe 22/23","y":77.82},{"x":2023,"sem":"SoSe 23","y":78.04},{"x":2023.5,"sem":"WiSe 23/24","y":77.25},{"x":2024,"sem":"SoSe 24","y":77.52},{"x":2024.5,"sem":"WiSe 24/25","y":76.62},{"x":2025,"sem":"SoSe 25","y":75.8},{"x":2025.5,"sem":"WiSe 25/26","y":76.3}],"ts_intl":[{"x":1972,"sem":"SoSe 72","y":5.48},{"x":1972.5,"sem":"WiSe 72/73","y":5.95},{"x":1973,"sem":"SoSe 73","y":10.0},{"x":1973.5,"sem":"WiSe 73/74","y":9.6},{"x":1974,"sem":"SoSe 74","y":7.79},{"x":1974.5,"sem":"WiSe 74/75","y":8.33},{"x":1975,"sem":"SoSe 75","y":7.33},{"x":1975.5,"sem":"WiSe 75/76","y":6.04},{"x":1976,"sem":"SoSe 76","y":6.56},{"x":1976.5,"sem":"WiSe 76/77","y":4.61},{"x":1977,"sem":"SoSe 77","y":4.24},{"x":1977.5,"sem":"WiSe 77/78","y":3.78},{"x":1978,"sem":"SoSe 78","y":4.21},{"x":1978.5,"sem":"WiSe 78/79","y":4.01},{"x":1979,"sem":"SoSe 79","y":3.51},{"x":1979.5,"sem":"WiSe 79/80","y":4.15},{"x":1980,"sem":"SoSe 80","y":4.77},{"x":1980.5,"sem":"WiSe 80/81","y":4.23},{"x":1981,"sem":"SoSe 81","y":4.6},{"x":1981.5,"sem":"WiSe 81/82","y":4.71},{"x":1982,"sem":"SoSe 82","y":5.03},{"x":1982.5,"sem":"WiSe 82/83","y":5.32},{"x":1983,"sem":"SoSe 83","y":5.45},{"x":1983.5,"sem":"WiSe 83/84","y":5.45},{"x":1984,"sem":"SoSe 84","y":5.27},{"x":1984.5,"sem":"WiSe 84/85","y":5.6},{"x":1985,"sem":"SoSe 85","y":5.8},{"x":1985.5,"sem":"WiSe 85/86","y":5.96},{"x":1986,"sem":"SoSe 86","y":5.56},{"x":1986.5,"sem":"WiSe 86/87","y":5.66},{"x":1987,"sem":"SoSe 87","y":5.52},{"x":1987.5,"sem":"WiSe 87/88","y":6.05},{"x":1988,"sem":"SoSe 88","y":6.24},{"x":1988.5,"sem":"WiSe 88/89","y":6.34},{"x":1989,"sem":"SoSe 89","y":6.48},{"x":1989.5,"sem":"WiSe 89/90","y":6.45},{"x":1990,"sem":"SoSe 90","y":7.44},{"x":1990.5,"sem":"WiSe 90/91","y":6.89},{"x":1991,"sem":"SoSe 91","y":6.46},{"x":1991.5,"sem":"WiSe 91/92","y":7.02},{"x":1992,"sem":"SoSe 92","y":7.47},{"x":1992.5,"sem":"WiSe 92/93","y":6.63},{"x":1993,"sem":"SoSe 93","y":7.73},{"x":1993.5,"sem":"WiSe 93/94","y":8.83},{"x":1994,"sem":"SoSe 94","y":9.89},{"x":1994.5,"sem":"WiSe 94/95","y":9.59},{"x":1995,"sem":"SoSe 95","y":10.17},{"x":1995.5,"sem":"WiSe 95/96","y":8.22},{"x":1996.5,"sem":"WiSe 96/97","y":7.71},{"x":1997,"sem":"SoSe 97","y":7.42},{"x":1997.5,"sem":"WiSe 97/98","y":7.41},{"x":1998,"sem":"SoSe 98","y":7.01},{"x":1999,"sem":"SoSe 99","y":8.58},{"x":1999.5,"sem":"WiSe 99/00","y":7.6},{"x":2000,"sem":"SoSe 00","y":7.95},{"x":2000.5,"sem":"WiSe 00/01","y":7.84},{"x":2001,"sem":"SoSe 01","y":7.54},{"x":2001.5,"sem":"WiSe 01/02","y":8.16},{"x":2002,"sem":"SoSe 02","y":9.07},{"x":2002.5,"sem":"WiSe 02/03","y":9.42},{"x":2003,"sem":"SoSe 03","y":9.55},{"x":2003.5,"sem":"WiSe 03/04","y":9.72},{"x":2004,"sem":"SoSe 04","y":10.92},{"x":2004.5,"sem":"WiSe 04/05","y":22.06},{"x":2005,"sem":"SoSe 05","y":19.66},{"x":2005.5,"sem":"WiSe 05/06","y":11.36},{"x":2006,"sem":"SoSe 06","y":11.45},{"x":2006.5,"sem":"WiSe 06/07","y":12.57},{"x":2009.5,"sem":"WiSe 09/10","y":11.59},{"x":2010,"sem":"SoSe 10","y":12.09},{"x":2010.5,"sem":"WiSe 10/11","y":14.99},{"x":2011,"sem":"SoSe 11","y":14.56},{"x":2011.5,"sem":"WiSe 11/12","y":15.89},{"x":2012,"sem":"SoSe 12","y":15.96},{"x":2012.5,"sem":"WiSe 12/13","y":19.04},{"x":2013,"sem":"SoSe 13","y":18.86},{"x":2013.5,"sem":"WiSe 13/14","y":17.4},{"x":2014,"sem":"SoSe 14","y":17.51},{"x":2014.5,"sem":"WiSe 14/15","y":16.45},{"x":2015,"sem":"SoSe 15","y":16.4},{"x":2015.5,"sem":"WiSe 15/16","y":18.52},{"x":2016,"sem":"SoSe 16","y":18.62},{"x":2016.5,"sem":"WiSe 16/17","y":18.22},{"x":2017,"sem":"SoSe 17","y":18.11},{"x":2017.5,"sem":"WiSe 17/18","y":18.66},{"x":2018,"sem":"SoSe 18","y":18.38},{"x":2018.5,"sem":"WiSe 18/19","y":18.51},{"x":2019,"sem":"SoSe 19","y":18.88},{"x":2019.5,"sem":"WiSe 19/20","y":20.31},{"x":2020,"sem":"SoSe 20","y":19.49},{"x":2020.5,"sem":"WiSe 20/21","y":20.16},{"x":2021,"sem":"SoSe 21","y":22.2},{"x":2021.5,"sem":"WiSe 21/22","y":23.26},{"x":2022,"sem":"SoSe 22","y":22.81},{"x":2022.5,"sem":"WiSe 22/23","y":23.19},{"x":2023,"sem":"SoSe 23","y":24.35},{"x":2023.5,"sem":"WiSe 23/24","y":25.54},{"x":2024,"sem":"SoSe 24","y":26.7},{"x":2024.5,"sem":"WiSe 24/25","y":25.54},{"x":2025,"sem":"SoSe 25","y":25.11},{"x":2025.5,"sem":"WiSe 25/26","y":24.13}],"bach_total":[{"x":2006,"sem":"SoSe 06","y":35},{"x":2006.5,"sem":"WiSe 06/07","y":80},{"x":2007,"sem":"SoSe 07","y":81},{"x":2007.5,"sem":"WiSe 07/08","y":125},{"x":2008,"sem":"SoSe 08","y":118},{"x":2008.5,"sem":"WiSe 08/09","y":160},{"x":2009,"sem":"SoSe 09","y":157},{"x":2009.5,"sem":"WiSe 09/10","y":181},{"x":2010,"sem":"SoSe 10","y":167},{"x":2010.5,"sem":"WiSe 10/11","y":177},{"x":2011,"sem":"SoSe 11","y":172},{"x":2011.5,"sem":"WiSe 11/12","y":227},{"x":2012,"sem":"SoSe 12","y":219},{"x":2012.5,"sem":"WiSe 12/13","y":246},{"x":2013,"sem":"SoSe 13","y":239},{"x":2013.5,"sem":"WiSe 13/14","y":291},{"x":2014,"sem":"SoSe 14","y":276},{"x":2014.5,"sem":"WiSe 14/15","y":299},{"x":2015,"sem":"SoSe 15","y":284},{"x":2015.5,"sem":"WiSe 15/16","y":303},{"x":2016,"sem":"SoSe 16","y":307},{"x":2016.5,"sem":"WiSe 16/17","y":320},{"x":2017,"sem":"SoSe 17","y":305},{"x":2017.5,"sem":"WiSe 17/18","y":348},{"x":2018,"sem":"SoSe 18","y":331},{"x":2018.5,"sem":"WiSe 18/19","y":354},{"x":2019,"sem":"SoSe 19","y":326},{"x":2019.5,"sem":"WiSe 19/20","y":342},{"x":2020,"sem":"SoSe 20","y":318},{"x":2020.5,"sem":"WiSe 20/21","y":342},{"x":2021,"sem":"SoSe 21","y":322},{"x":2021.5,"sem":"WiSe 21/22","y":336},{"x":2022,"sem":"SoSe 22","y":323},{"x":2022.5,"sem":"WiSe 22/23","y":330},{"x":2023,"sem":"SoSe 23","y":305},{"x":2023.5,"sem":"WiSe 23/24","y":305},{"x":2024,"sem":"SoSe 24","y":279},{"x":2024.5,"sem":"WiSe 24/25","y":301},{"x":2025,"sem":"SoSe 25","y":293},{"x":2025.5,"sem":"WiSe 25/26","y":312}],"bach_fem":[{"x":2006,"sem":"SoSe 06","y":74.29},{"x":2006.5,"sem":"WiSe 06/07","y":83.75},{"x":2009.5,"sem":"WiSe 09/10","y":78.45},{"x":2010,"sem":"SoSe 10","y":78.44},{"x":2010.5,"sem":"WiSe 10/11","y":81.36},{"x":2011,"sem":"SoSe 11","y":81.98},{"x":2011.5,"sem":"WiSe 11/12","y":81.5},{"x":2012,"sem":"SoSe 12","y":81.74},{"x":2012.5,"sem":"WiSe 12/13","y":84.15},{"x":2013,"sem":"SoSe 13","y":83.68},{"x":2013.5,"sem":"WiSe 13/14","y":84.88},{"x":2014,"sem":"SoSe 14","y":85.51},{"x":2014.5,"sem":"WiSe 14/15","y":84.28},{"x":2015,"sem":"SoSe 15","y":85.21},{"x":2015.5,"sem":"WiSe 15/16","y":82.84},{"x":2016,"sem":"SoSe 16","y":82.41},{"x":2016.5,"sem":"WiSe 16/17","y":82.19},{"x":2017,"sem":"SoSe 17","y":82.95},{"x":2017.5,"sem":"WiSe 17/18","y":82.18},{"x":2018,"sem":"SoSe 18","y":75.53},{"x":2018.5,"sem":"WiSe 18/19","y":79.94},{"x":2019,"sem":"SoSe 19","y":79.14},{"x":2019.5,"sem":"WiSe 19/20","y":79.53},{"x":2020,"sem":"SoSe 20","y":80.19},{"x":2020.5,"sem":"WiSe 20/21","y":80.7},{"x":2021,"sem":"SoSe 21","y":81.06},{"x":2021.5,"sem":"WiSe 21/22","y":79.76},{"x":2022,"sem":"SoSe 22","y":79.26},{"x":2022.5,"sem":"WiSe 22/23","y":78.48},{"x":2023,"sem":"SoSe 23","y":79.02},{"x":2023.5,"sem":"WiSe 23/24","y":78.69},{"x":2024,"sem":"SoSe 24","y":79.21},{"x":2024.5,"sem":"WiSe 24/25","y":78.07},{"x":2025,"sem":"SoSe 25","y":77.47},{"x":2025.5,"sem":"WiSe 25/26","y":78.21}],"bach_intl":[{"x":2006,"sem":"SoSe 06","y":11.43},{"x":2006.5,"sem":"WiSe 06/07","y":22.5},{"x":2009.5,"sem":"WiSe 09/10","y":13.26},{"x":2010,"sem":"SoSe 10","y":13.77},{"x":2010.5,"sem":"WiSe 10/11","y":15.82},{"x":2011,"sem":"SoSe 11","y":15.12},{"x":2011.5,"sem":"WiSe 11/12","y":15.86},{"x":2012,"sem":"SoSe 12","y":15.98},{"x":2012.5,"sem":"WiSe 12/13","y":18.29},{"x":2013,"sem":"SoSe 13","y":18.41},{"x":2013.5,"sem":"WiSe 13/14","y":16.84},{"x":2014,"sem":"SoSe 14","y":16.67},{"x":2014.5,"sem":"WiSe 14/15","y":15.05},{"x":2015,"sem":"SoSe 15","y":15.14},{"x":2015.5,"sem":"WiSe 15/16","y":15.51},{"x":2016,"sem":"SoSe 16","y":14.98},{"x":2016.5,"sem":"WiSe 16/17","y":14.37},{"x":2017,"sem":"SoSe 17","y":13.44},{"x":2017.5,"sem":"WiSe 17/18","y":14.66},{"x":2018,"sem":"SoSe 18","y":13.9},{"x":2018.5,"sem":"WiSe 18/19","y":15.25},{"x":2019,"sem":"SoSe 19","y":15.64},{"x":2019.5,"sem":"WiSe 19/20","y":17.25},{"x":2020,"sem":"SoSe 20","y":17.3},{"x":2020.5,"sem":"WiSe 20/21","y":19.59},{"x":2021,"sem":"SoSe 21","y":20.19},{"x":2021.5,"sem":"WiSe 21/22","y":22.02},{"x":2022,"sem":"SoSe 22","y":21.05},{"x":2022.5,"sem":"WiSe 22/23","y":20.3},{"x":2023,"sem":"SoSe 23","y":20.66},{"x":2023.5,"sem":"WiSe 23/24","y":20.98},{"x":2024,"sem":"SoSe 24","y":21.51},{"x":2024.5,"sem":"WiSe 24/25","y":21.26},{"x":2025,"sem":"SoSe 25","y":20.48},{"x":2025.5,"sem":"WiSe 25/26","y":18.91}],"bach_grade":[{"x":2009.5,"sem":"WiSe 09/10","y":1.6},{"x":2010,"sem":"SoSe 10","y":1.5},{"x":2010.5,"sem":"WiSe 10/11","y":1.6},{"x":2011,"sem":"SoSe 11","y":1.5},{"x":2011.5,"sem":"WiSe 11/12","y":1.7},{"x":2012,"sem":"SoSe 12","y":1.6},{"x":2012.5,"sem":"WiSe 12/13","y":1.7},{"x":2013,"sem":"SoSe 13","y":1.6},{"x":2013.5,"sem":"WiSe 13/14","y":1.7},{"x":2014,"sem":"SoSe 14","y":1.5},{"x":2014.5,"sem":"WiSe 14/15","y":1.4},{"x":2015,"sem":"SoSe 15","y":1.5},{"x":2015.5,"sem":"WiSe 15/16","y":1.4},{"x":2016,"sem":"SoSe 16","y":1.6},{"x":2016.5,"sem":"WiSe 16/17","y":1.6},{"x":2017,"sem":"SoSe 17","y":1.7},{"x":2017.5,"sem":"WiSe 17/18","y":1.6},{"x":2018,"sem":"SoSe 18","y":1.5},{"x":2018.5,"sem":"WiSe 18/19","y":1.7},{"x":2019,"sem":"SoSe 19","y":1.5},{"x":2019.5,"sem":"WiSe 19/20","y":1.5},{"x":2020,"sem":"SoSe 20","y":1.5},{"x":2020.5,"sem":"WiSe 20/21","y":1.42},{"x":2021,"sem":"SoSe 21","y":1.42},{"x":2021.5,"sem":"WiSe 21/22","y":1.46},{"x":2022,"sem":"SoSe 22","y":1.61},{"x":2022.5,"sem":"WiSe 22/23","y":1.63},{"x":2023,"sem":"SoSe 23","y":1.46},{"x":2023.5,"sem":"WiSe 23/24","y":1.61},{"x":2024,"sem":"SoSe 24","y":1.51},{"x":2024.5,"sem":"WiSe 24/25","y":1.66},{"x":2025,"sem":"SoSe 25","y":1.6}],"bach_dur":[{"x":2009.5,"sem":"WiSe 09/10","y":7.6},{"x":2010,"sem":"SoSe 10","y":7.8},{"x":2010.5,"sem":"WiSe 10/11","y":7.7},{"x":2011,"sem":"SoSe 11","y":7.4},{"x":2011.5,"sem":"WiSe 11/12","y":8.2},{"x":2012,"sem":"SoSe 12","y":8.1},{"x":2012.5,"sem":"WiSe 12/13","y":8.5},{"x":2013,"sem":"SoSe 13","y":8},{"x":2013.5,"sem":"WiSe 13/14","y":8.2},{"x":2014,"sem":"SoSe 14","y":7.8},{"x":2014.5,"sem":"WiSe 14/15","y":7.8},{"x":2015,"sem":"SoSe 15","y":8.2},{"x":2015.5,"sem":"WiSe 15/16","y":8.4},{"x":2016,"sem":"SoSe 16","y":9.3},{"x":2016.5,"sem":"WiSe 16/17","y":8.7},{"x":2017,"sem":"SoSe 17","y":8.2},{"x":2017.5,"sem":"WiSe 17/18","y":8.6},{"x":2018,"sem":"SoSe 18","y":8.5},{"x":2018.5,"sem":"WiSe 18/19","y":10},{"x":2019,"sem":"SoSe 19","y":8.3},{"x":2019.5,"sem":"WiSe 19/20","y":9.6},{"x":2020,"sem":"SoSe 20","y":8.7},{"x":2020.5,"sem":"WiSe 20/21","y":7.5},{"x":2021,"sem":"SoSe 21","y":8.1},{"x":2021.5,"sem":"WiSe 21/22","y":7.6},{"x":2022,"sem":"SoSe 22","y":9.2},{"x":2022.5,"sem":"WiSe 22/23","y":9.4},{"x":2023,"sem":"SoSe 23","y":9.2},{"x":2023.5,"sem":"WiSe 23/24","y":8.9},{"x":2024,"sem":"SoSe 24","y":9.1},{"x":2024.5,"sem":"WiSe 24/25","y":8.8},{"x":2025,"sem":"SoSe 25","y":8.8}],"bach_grads":[{"x":2009.5,"sem":"WiSe 09/10","y":9},{"x":2010,"sem":"SoSe 10","y":16},{"x":2010.5,"sem":"WiSe 10/11","y":18},{"x":2011,"sem":"SoSe 11","y":20},{"x":2011.5,"sem":"WiSe 11/12","y":10},{"x":2012,"sem":"SoSe 12","y":18},{"x":2012.5,"sem":"WiSe 12/13","y":15},{"x":2013,"sem":"SoSe 13","y":10},{"x":2013.5,"sem":"WiSe 13/14","y":13},{"x":2014,"sem":"SoSe 14","y":16},{"x":2014.5,"sem":"WiSe 14/15","y":18},{"x":2015,"sem":"SoSe 15","y":24},{"x":2015.5,"sem":"WiSe 15/16","y":13},{"x":2016,"sem":"SoSe 16","y":21},{"x":2016.5,"sem":"WiSe 16/17","y":17},{"x":2017,"sem":"SoSe 17","y":19},{"x":2017.5,"sem":"WiSe 17/18","y":15},{"x":2018,"sem":"SoSe 18","y":23},{"x":2018.5,"sem":"WiSe 18/19","y":11},{"x":2019,"sem":"SoSe 19","y":22},{"x":2019.5,"sem":"WiSe 19/20","y":18},{"x":2020,"sem":"SoSe 20","y":24},{"x":2020.5,"sem":"WiSe 20/21","y":6},{"x":2021,"sem":"SoSe 21","y":21},{"x":2021.5,"sem":"WiSe 21/22","y":14},{"x":2022,"sem":"SoSe 22","y":29},{"x":2022.5,"sem":"WiSe 22/23","y":18},{"x":2023,"sem":"SoSe 23","y":19},{"x":2023.5,"sem":"WiSe 23/24","y":14},{"x":2024,"sem":"SoSe 24","y":31},{"x":2024.5,"sem":"WiSe 24/25","y":20},{"x":2025,"sem":"SoSe 25","y":25}],"mast_total":[{"x":2008.5,"sem":"WiSe 08/09","y":14},{"x":2009,"sem":"SoSe 09","y":12},{"x":2009.5,"sem":"WiSe 09/10","y":34},{"x":2010,"sem":"SoSe 10","y":27},{"x":2010.5,"sem":"WiSe 10/11","y":61},{"x":2011,"sem":"SoSe 11","y":53},{"x":2011.5,"sem":"WiSe 11/12","y":67},{"x":2012,"sem":"SoSe 12","y":67},{"x":2012.5,"sem":"WiSe 12/13","y":89},{"x":2013,"sem":"SoSe 13","y":79},{"x":2013.5,"sem":"WiSe 13/14","y":106},{"x":2014,"sem":"SoSe 14","y":87},{"x":2014.5,"sem":"WiSe 14/15","y":117},{"x":2015,"sem":"SoSe 15","y":106},{"x":2015.5,"sem":"WiSe 15/16","y":130},{"x":2016,"sem":"SoSe 16","y":119},{"x":2016.5,"sem":"WiSe 16/17","y":139},{"x":2017,"sem":"SoSe 17","y":127},{"x":2017.5,"sem":"WiSe 17/18","y":144},{"x":2018,"sem":"SoSe 18","y":126},{"x":2018.5,"sem":"WiSe 18/19","y":134},{"x":2019,"sem":"SoSe 19","y":121},{"x":2019.5,"sem":"WiSe 19/20","y":136},{"x":2020,"sem":"SoSe 20","y":116},{"x":2020.5,"sem":"WiSe 20/21","y":140},{"x":2021,"sem":"SoSe 21","y":118},{"x":2021.5,"sem":"WiSe 21/22","y":128},{"x":2022,"sem":"SoSe 22","y":113},{"x":2022.5,"sem":"WiSe 22/23","y":109},{"x":2023,"sem":"SoSe 23","y":101},{"x":2023.5,"sem":"WiSe 23/24","y":106},{"x":2024,"sem":"SoSe 24","y":91},{"x":2024.5,"sem":"WiSe 24/25","y":108},{"x":2025,"sem":"SoSe 25","y":94},{"x":2025.5,"sem":"WiSe 25/26","y":94}],"mast_fem":[{"x":2009.5,"sem":"WiSe 09/10","y":76.47},{"x":2010,"sem":"SoSe 10","y":77.78},{"x":2010.5,"sem":"WiSe 10/11","y":88.52},{"x":2011,"sem":"SoSe 11","y":86.79},{"x":2011.5,"sem":"WiSe 11/12","y":86.57},{"x":2012,"sem":"SoSe 12","y":86.57},{"x":2012.5,"sem":"WiSe 12/13","y":84.27},{"x":2013,"sem":"SoSe 13","y":83.54},{"x":2013.5,"sem":"WiSe 13/14","y":82.08},{"x":2014,"sem":"SoSe 14","y":81.61},{"x":2014.5,"sem":"WiSe 14/15","y":82.91},{"x":2015,"sem":"SoSe 15","y":76.42},{"x":2015.5,"sem":"WiSe 15/16","y":79.23},{"x":2016,"sem":"SoSe 16","y":80.67},{"x":2016.5,"sem":"WiSe 16/17","y":81.3},{"x":2017,"sem":"SoSe 17","y":81.1},{"x":2017.5,"sem":"WiSe 17/18","y":84.72},{"x":2018,"sem":"SoSe 18","y":87.3},{"x":2018.5,"sem":"WiSe 18/19","y":89.55},{"x":2019,"sem":"SoSe 19","y":89.26},{"x":2019.5,"sem":"WiSe 19/20","y":85.29},{"x":2020,"sem":"SoSe 20","y":85.34},{"x":2020.5,"sem":"WiSe 20/21","y":87.14},{"x":2021,"sem":"SoSe 21","y":84.75},{"x":2021.5,"sem":"WiSe 21/22","y":85.16},{"x":2022,"sem":"SoSe 22","y":83.19},{"x":2022.5,"sem":"WiSe 22/23","y":82.57},{"x":2023,"sem":"SoSe 23","y":82.18},{"x":2023.5,"sem":"WiSe 23/24","y":80.19},{"x":2024,"sem":"SoSe 24","y":80.22},{"x":2024.5,"sem":"WiSe 24/25","y":79.63},{"x":2025,"sem":"SoSe 25","y":77.66},{"x":2025.5,"sem":"WiSe 25/26","y":79.79}],"mast_intl":[{"x":2009.5,"sem":"WiSe 09/10","y":8.82},{"x":2010,"sem":"SoSe 10","y":7.41},{"x":2010.5,"sem":"WiSe 10/11","y":14.75},{"x":2011,"sem":"SoSe 11","y":15.09},{"x":2011.5,"sem":"WiSe 11/12","y":16.42},{"x":2012,"sem":"SoSe 12","y":16.42},{"x":2012.5,"sem":"WiSe 12/13","y":14.61},{"x":2013,"sem":"SoSe 13","y":13.92},{"x":2013.5,"sem":"WiSe 13/14","y":11.32},{"x":2014,"sem":"SoSe 14","y":12.64},{"x":2014.5,"sem":"WiSe 14/15","y":12.82},{"x":2015,"sem":"SoSe 15","y":12.26},{"x":2015.5,"sem":"WiSe 15/16","y":16.15},{"x":2016,"sem":"SoSe 16","y":16.81},{"x":2016.5,"sem":"WiSe 16/17","y":16.55},{"x":2017,"sem":"SoSe 17","y":18.11},{"x":2017.5,"sem":"WiSe 17/18","y":18.06},{"x":2018,"sem":"SoSe 18","y":18.25},{"x":2018.5,"sem":"WiSe 18/19","y":16.42},{"x":2019,"sem":"SoSe 19","y":17.36},{"x":2019.5,"sem":"WiSe 19/20","y":18.38},{"x":2020,"sem":"SoSe 20","y":16.38},{"x":2020.5,"sem":"WiSe 20/21","y":15.71},{"x":2021,"sem":"SoSe 21","y":16.95},{"x":2021.5,"sem":"WiSe 21/22","y":14.06},{"x":2022,"sem":"SoSe 22","y":14.16},{"x":2022.5,"sem":"WiSe 22/23","y":15.6},{"x":2023,"sem":"SoSe 23","y":15.84},{"x":2023.5,"sem":"WiSe 23/24","y":18.87},{"x":2024,"sem":"SoSe 24","y":20.88},{"x":2024.5,"sem":"WiSe 24/25","y":18.52},{"x":2025,"sem":"SoSe 25","y":18.09},{"x":2025.5,"sem":"WiSe 25/26","y":19.15}],"mast_grade":[{"x":2010.5,"sem":"WiSe 10/11","y":1.6},{"x":2011,"sem":"SoSe 11","y":1.2},{"x":2011.5,"sem":"WiSe 11/12","y":1.7},{"x":2012,"sem":"SoSe 12","y":1.5},{"x":2012.5,"sem":"WiSe 12/13","y":1.6},{"x":2013,"sem":"SoSe 13","y":1.5},{"x":2013.5,"sem":"WiSe 13/14","y":1.3},{"x":2014,"sem":"SoSe 14","y":1.3},{"x":2014.5,"sem":"WiSe 14/15","y":1.4},{"x":2015,"sem":"SoSe 15","y":1.7},{"x":2015.5,"sem":"WiSe 15/16","y":1.2},{"x":2016,"sem":"SoSe 16","y":1.5},{"x":2016.5,"sem":"WiSe 16/17","y":1.5},{"x":2017,"sem":"SoSe 17","y":1.4},{"x":2017.5,"sem":"WiSe 17/18","y":1.3},{"x":2018,"sem":"SoSe 18","y":1.3},{"x":2018.5,"sem":"WiSe 18/19","y":1.2},{"x":2019,"sem":"SoSe 19","y":1.4},{"x":2019.5,"sem":"WiSe 19/20","y":1.5},{"x":2020,"sem":"SoSe 20","y":1.3},{"x":2020.5,"sem":"WiSe 20/21","y":1.38},{"x":2021,"sem":"SoSe 21","y":1.4},{"x":2021.5,"sem":"WiSe 21/22","y":1.33},{"x":2022,"sem":"SoSe 22","y":1.35},{"x":2022.5,"sem":"WiSe 22/23","y":1.15},{"x":2023,"sem":"SoSe 23","y":1.43},{"x":2023.5,"sem":"WiSe 23/24","y":1.2},{"x":2024,"sem":"SoSe 24","y":1.19},{"x":2024.5,"sem":"WiSe 24/25","y":1.25},{"x":2025,"sem":"SoSe 25","y":1.45}],"mast_dur":[{"x":2010.5,"sem":"WiSe 10/11","y":5},{"x":2011,"sem":"SoSe 11","y":4.7},{"x":2011.5,"sem":"WiSe 11/12","y":6},{"x":2012,"sem":"SoSe 12","y":5.5},{"x":2012.5,"sem":"WiSe 12/13","y":6.4},{"x":2013,"sem":"SoSe 13","y":7},{"x":2013.5,"sem":"WiSe 13/14","y":7.1},{"x":2014,"sem":"SoSe 14","y":7.5},{"x":2014.5,"sem":"WiSe 14/15","y":7.2},{"x":2015,"sem":"SoSe 15","y":8},{"x":2015.5,"sem":"WiSe 15/16","y":7.6},{"x":2016,"sem":"SoSe 16","y":7.3},{"x":2016.5,"sem":"WiSe 16/17","y":7},{"x":2017,"sem":"SoSe 17","y":8.3},{"x":2017.5,"sem":"WiSe 17/18","y":8},{"x":2018,"sem":"SoSe 18","y":11.5},{"x":2018.5,"sem":"WiSe 18/19","y":12.3},{"x":2019,"sem":"SoSe 19","y":7.1},{"x":2019.5,"sem":"WiSe 19/20","y":7.3},{"x":2020,"sem":"SoSe 20","y":9},{"x":2020.5,"sem":"WiSe 20/21","y":7.4},{"x":2021,"sem":"SoSe 21","y":9.3},{"x":2021.5,"sem":"WiSe 21/22","y":8.7},{"x":2022,"sem":"SoSe 22","y":6.4},{"x":2022.5,"sem":"WiSe 22/23","y":5.5},{"x":2023,"sem":"SoSe 23","y":7.6},{"x":2023.5,"sem":"WiSe 23/24","y":8},{"x":2024,"sem":"SoSe 24","y":7.3},{"x":2024.5,"sem":"WiSe 24/25","y":8.8},{"x":2025,"sem":"SoSe 25","y":7.2}],"mast_grads":[{"x":2010.5,"sem":"WiSe 10/11","y":2},{"x":2011,"sem":"SoSe 11","y":3},{"x":2011.5,"sem":"WiSe 11/12","y":2},{"x":2012,"sem":"SoSe 12","y":2},{"x":2012.5,"sem":"WiSe 12/13","y":5},{"x":2013,"sem":"SoSe 13","y":3},{"x":2013.5,"sem":"WiSe 13/14","y":10},{"x":2014,"sem":"SoSe 14","y":11},{"x":2014.5,"sem":"WiSe 14/15","y":6},{"x":2015,"sem":"SoSe 15","y":1},{"x":2015.5,"sem":"WiSe 15/16","y":7},{"x":2016,"sem":"SoSe 16","y":7},{"x":2016.5,"sem":"WiSe 16/17","y":7},{"x":2017,"sem":"SoSe 17","y":3},{"x":2017.5,"sem":"WiSe 17/18","y":5},{"x":2018,"sem":"SoSe 18","y":2},{"x":2018.5,"sem":"WiSe 18/19","y":4},{"x":2019,"sem":"SoSe 19","y":9},{"x":2019.5,"sem":"WiSe 19/20","y":7},{"x":2020,"sem":"SoSe 20","y":6},{"x":2020.5,"sem":"WiSe 20/21","y":8},{"x":2021,"sem":"SoSe 21","y":3},{"x":2021.5,"sem":"WiSe 21/22","y":10},{"x":2022,"sem":"SoSe 22","y":10},{"x":2022.5,"sem":"WiSe 22/23","y":2},{"x":2023,"sem":"SoSe 23","y":11},{"x":2023.5,"sem":"WiSe 23/24","y":7},{"x":2024,"sem":"SoSe 24","y":7},{"x":2024.5,"sem":"WiSe 24/25","y":8},{"x":2025,"sem":"SoSe 25","y":13}],"mag_total":[{"x":1973,"sem":"SoSe 73","y":69},{"x":1973.5,"sem":"WiSe 73/74","y":79},{"x":1974,"sem":"SoSe 74","y":104},{"x":1975.5,"sem":"WiSe 75/76","y":196},{"x":1976,"sem":"SoSe 76","y":233},{"x":1976.5,"sem":"WiSe 76/77","y":272},{"x":1977,"sem":"SoSe 77","y":333},{"x":1977.5,"sem":"WiSe 77/78","y":385},{"x":1978,"sem":"SoSe 78","y":422},{"x":1978.5,"sem":"WiSe 78/79","y":526},{"x":1979.5,"sem":"WiSe 79/80","y":661},{"x":1980,"sem":"SoSe 80","y":731},{"x":1980.5,"sem":"WiSe 80/81","y":813},{"x":1981,"sem":"SoSe 81","y":895},{"x":1981.5,"sem":"WiSe 81/82","y":1074},{"x":1982,"sem":"SoSe 82","y":1167},{"x":1982.5,"sem":"WiSe 82/83","y":1052},{"x":1983,"sem":"SoSe 83","y":919},{"x":1983.5,"sem":"WiSe 83/84","y":809},{"x":1984,"sem":"SoSe 84","y":763},{"x":1984.5,"sem":"WiSe 84/85","y":730},{"x":1985,"sem":"SoSe 85","y":689},{"x":1985.5,"sem":"WiSe 85/86","y":653},{"x":1986,"sem":"SoSe 86","y":652},{"x":1986.5,"sem":"WiSe 86/87","y":635},{"x":1987,"sem":"SoSe 87","y":617},{"x":1987.5,"sem":"WiSe 87/88","y":606},{"x":1988,"sem":"SoSe 88","y":598},{"x":1988.5,"sem":"WiSe 88/89","y":604},{"x":1989,"sem":"SoSe 89","y":567},{"x":1989.5,"sem":"WiSe 89/90","y":580},{"x":1990,"sem":"SoSe 90","y":555},{"x":1990.5,"sem":"WiSe 90/91","y":557},{"x":1991,"sem":"SoSe 91","y":556},{"x":1991.5,"sem":"WiSe 91/92","y":551},{"x":1992,"sem":"SoSe 92","y":544},{"x":1992.5,"sem":"WiSe 92/93","y":545},{"x":1993,"sem":"SoSe 93","y":529},{"x":1993.5,"sem":"WiSe 93/94","y":523},{"x":1994,"sem":"SoSe 94","y":508},{"x":1994.5,"sem":"WiSe 94/95","y":458},{"x":1995,"sem":"SoSe 95","y":434},{"x":1995.5,"sem":"WiSe 95/96","y":456},{"x":1996.5,"sem":"WiSe 96/97","y":542},{"x":1997,"sem":"SoSe 97","y":526},{"x":1997.5,"sem":"WiSe 97/98","y":514},{"x":1998,"sem":"SoSe 98","y":502},{"x":1999,"sem":"SoSe 99","y":505},{"x":1999.5,"sem":"WiSe 99/00","y":514},{"x":2000,"sem":"SoSe 00","y":538},{"x":2000.5,"sem":"WiSe 00/01","y":536},{"x":2001,"sem":"SoSe 01","y":549},{"x":2001.5,"sem":"WiSe 01/02","y":539},{"x":2002,"sem":"SoSe 02","y":542},{"x":2002.5,"sem":"WiSe 02/03","y":523},{"x":2003,"sem":"SoSe 03","y":548},{"x":2003.5,"sem":"WiSe 03/04","y":563},{"x":2004,"sem":"SoSe 04","y":584},{"x":2004.5,"sem":"WiSe 04/05","y":594},{"x":2005,"sem":"SoSe 05","y":586},{"x":2005.5,"sem":"WiSe 05/06","y":547},{"x":2006,"sem":"SoSe 06","y":494},{"x":2006.5,"sem":"WiSe 06/07","y":449},{"x":2007,"sem":"SoSe 07","y":337},{"x":2007.5,"sem":"WiSe 07/08","y":298},{"x":2008,"sem":"SoSe 08","y":267},{"x":2008.5,"sem":"WiSe 08/09","y":230},{"x":2009,"sem":"SoSe 09","y":207},{"x":2009.5,"sem":"WiSe 09/10","y":177},{"x":2010,"sem":"SoSe 10","y":148},{"x":2010.5,"sem":"WiSe 10/11","y":126},{"x":2011,"sem":"SoSe 11","y":115},{"x":2011.5,"sem":"WiSe 11/12","y":92},{"x":2012,"sem":"SoSe 12","y":92},{"x":2012.5,"sem":"WiSe 12/13","y":48},{"x":2013,"sem":"SoSe 13","y":37},{"x":2013.5,"sem":"WiSe 13/14","y":26},{"x":2014,"sem":"SoSe 14","y":23},{"x":2014.5,"sem":"WiSe 14/15","y":17},{"x":2015,"sem":"SoSe 15","y":16},{"x":2015.5,"sem":"WiSe 15/16","y":15},{"x":2016,"sem":"SoSe 16","y":12},{"x":2016.5,"sem":"WiSe 16/17","y":7},{"x":2017,"sem":"SoSe 17","y":5},{"x":2017.5,"sem":"WiSe 17/18","y":5},{"x":2018,"sem":"SoSe 18","y":1}],"mag_fem":[{"x":2009.5,"sem":"WiSe 09/10","y":77.4},{"x":2010,"sem":"SoSe 10","y":79.05},{"x":2010.5,"sem":"WiSe 10/11","y":77.78},{"x":2011,"sem":"SoSe 11","y":77.39},{"x":2011.5,"sem":"WiSe 11/12","y":78.26},{"x":2012,"sem":"SoSe 12","y":78.26},{"x":2012.5,"sem":"WiSe 12/13","y":89.58},{"x":2013,"sem":"SoSe 13","y":89.19},{"x":2013.5,"sem":"WiSe 13/14","y":88.46},{"x":2014,"sem":"SoSe 14","y":95.65},{"x":2014.5,"sem":"WiSe 14/15","y":94.12},{"x":2015,"sem":"SoSe 15","y":93.75},{"x":2015.5,"sem":"WiSe 15/16","y":93.33},{"x":2016,"sem":"SoSe 16","y":91.67},{"x":2016.5,"sem":"WiSe 16/17","y":100},{"x":2017,"sem":"SoSe 17","y":80.0},{"x":2017.5,"sem":"WiSe 17/18","y":80.0},{"x":2018,"sem":"SoSe 18","y":100}],"mag_intl":[{"x":2007,"sem":"SoSe 07","y":2.08},{"x":2009.5,"sem":"WiSe 09/10","y":9.6},{"x":2010,"sem":"SoSe 10","y":8.78},{"x":2010.5,"sem":"WiSe 10/11","y":8.73},{"x":2011,"sem":"SoSe 11","y":8.7},{"x":2011.5,"sem":"WiSe 11/12","y":8.7},{"x":2012,"sem":"SoSe 12","y":8.7},{"x":2012.5,"sem":"WiSe 12/13","y":8.33},{"x":2013,"sem":"SoSe 13","y":5.41},{"x":2013.5,"sem":"WiSe 13/14","y":7.69},{"x":2014,"sem":"SoSe 14","y":4.35},{"x":2014.5,"sem":"WiSe 14/15","y":5.88},{"x":2015,"sem":"SoSe 15","y":6.25},{"x":2015.5,"sem":"WiSe 15/16","y":6.67},{"x":2016,"sem":"SoSe 16","y":8.33},{"x":2016.5,"sem":"WiSe 16/17","y":14.29}],"mag_grade":[{"x":1974.5,"sem":"WiSe 74/75","y":1},{"x":1975,"sem":"SoSe 75","y":1},{"x":1975.5,"sem":"WiSe 75/76","y":1},{"x":1976,"sem":"SoSe 76","y":1},{"x":1976.5,"sem":"WiSe 76/77","y":1},{"x":1977,"sem":"SoSe 77","y":1},{"x":1978,"sem":"SoSe 78","y":1},{"x":1979,"sem":"SoSe 79","y":1.4},{"x":1979.5,"sem":"WiSe 79/80","y":1.3},{"x":1980,"sem":"SoSe 80","y":1.3},{"x":1981,"sem":"SoSe 81","y":1.2},{"x":1981.5,"sem":"WiSe 81/82","y":1.6},{"x":1982,"sem":"SoSe 82","y":1.3},{"x":1982.5,"sem":"WiSe 82/83","y":1.6},{"x":1983,"sem":"SoSe 83","y":1.6},{"x":1983.5,"sem":"WiSe 83/84","y":1.6},{"x":1984,"sem":"SoSe 84","y":1.7},{"x":1984.5,"sem":"WiSe 84/85","y":1.7},{"x":1985,"sem":"SoSe 85","y":1.6},{"x":1985.5,"sem":"WiSe 85/86","y":1.6},{"x":1986,"sem":"SoSe 86","y":1.6},{"x":1986.5,"sem":"WiSe 86/87","y":1.3},{"x":1987,"sem":"SoSe 87","y":1.3},{"x":1987.5,"sem":"WiSe 87/88","y":1.6},{"x":1988,"sem":"SoSe 88","y":1.6},{"x":1989.5,"sem":"WiSe 89/90","y":1.6},{"x":1990,"sem":"SoSe 90","y":1.6},{"x":1990.5,"sem":"WiSe 90/91","y":1.4},{"x":1991,"sem":"SoSe 91","y":1.4},{"x":1991.5,"sem":"WiSe 91/92","y":1.3},{"x":1992,"sem":"SoSe 92","y":1.3},{"x":1992.5,"sem":"WiSe 92/93","y":1.8},{"x":1993,"sem":"SoSe 93","y":1.8},{"x":1993.5,"sem":"WiSe 93/94","y":1.3},{"x":1994,"sem":"SoSe 94","y":1.3},{"x":1997.5,"sem":"WiSe 97/98","y":1.9},{"x":1998,"sem":"SoSe 98","y":1.9},{"x":1998.5,"sem":"WiSe 98/99","y":1.5},{"x":1999,"sem":"SoSe 99","y":1.5},{"x":1999.5,"sem":"WiSe 99/00","y":1.8},{"x":2000,"sem":"SoSe 00","y":1.8},{"x":2000.5,"sem":"WiSe 00/01","y":1.4},{"x":2001,"sem":"SoSe 01","y":1.4},{"x":2001.5,"sem":"WiSe 01/02","y":1.6},{"x":2002,"sem":"SoSe 02","y":1.6},{"x":2002.5,"sem":"WiSe 02/03","y":1.5},{"x":2003,"sem":"SoSe 03","y":1.5},{"x":2009.5,"sem":"WiSe 09/10","y":1.6},{"x":2010,"sem":"SoSe 10","y":1.3},{"x":2010.5,"sem":"WiSe 10/11","y":1.5},{"x":2011.5,"sem":"WiSe 11/12","y":1.6},{"x":2012,"sem":"SoSe 12","y":1.6},{"x":2013,"sem":"SoSe 13","y":1.8},{"x":2013.5,"sem":"WiSe 13/14","y":1.4},{"x":2014,"sem":"SoSe 14","y":1.6},{"x":2014.5,"sem":"WiSe 14/15","y":1.5},{"x":2015,"sem":"SoSe 15","y":1.6},{"x":2016,"sem":"SoSe 16","y":2.2},{"x":2016.5,"sem":"WiSe 16/17","y":2},{"x":2017,"sem":"SoSe 17","y":2.3},{"x":2017.5,"sem":"WiSe 17/18","y":1.6}],"mag_dur":[{"x":1974.5,"sem":"WiSe 74/75","y":16},{"x":1975,"sem":"SoSe 75","y":16},{"x":1975.5,"sem":"WiSe 75/76","y":19.5},{"x":1976,"sem":"SoSe 76","y":16},{"x":1976.5,"sem":"WiSe 76/77","y":14},{"x":1977,"sem":"SoSe 77","y":15},{"x":1978,"sem":"SoSe 78","y":15},{"x":1979,"sem":"SoSe 79","y":12.8},{"x":1979.5,"sem":"WiSe 79/80","y":13.3},{"x":1980,"sem":"SoSe 80","y":12.2},{"x":1981,"sem":"SoSe 81","y":13.2},{"x":1981.5,"sem":"WiSe 81/82","y":11.4},{"x":1982,"sem":"SoSe 82","y":11.5},{"x":1982.5,"sem":"WiSe 82/83","y":13.9},{"x":1983,"sem":"SoSe 83","y":13.9},{"x":1983.5,"sem":"WiSe 83/84","y":13.9},{"x":1984,"sem":"SoSe 84","y":15.3},{"x":1984.5,"sem":"WiSe 84/85","y":15.3},{"x":1985,"sem":"SoSe 85","y":16},{"x":1985.5,"sem":"WiSe 85/86","y":16},{"x":1986,"sem":"SoSe 86","y":13.6},{"x":1986.5,"sem":"WiSe 86/87","y":15.5},{"x":1987,"sem":"SoSe 87","y":15.5},{"x":1987.5,"sem":"WiSe 87/88","y":17.3},{"x":1988,"sem":"SoSe 88","y":17.3},{"x":1989.5,"sem":"WiSe 89/90","y":18},{"x":1990,"sem":"SoSe 90","y":18},{"x":1990.5,"sem":"WiSe 90/91","y":17.6},{"x":1991,"sem":"SoSe 91","y":17.6},{"x":1991.5,"sem":"WiSe 91/92","y":16.4},{"x":1992,"sem":"SoSe 92","y":16.4},{"x":1992.5,"sem":"WiSe 92/93","y":18.2},{"x":1993,"sem":"SoSe 93","y":18.2},{"x":1993.5,"sem":"WiSe 93/94","y":16.5},{"x":1994,"sem":"SoSe 94","y":16.5},{"x":1997.5,"sem":"WiSe 97/98","y":16.1},{"x":1998,"sem":"SoSe 98","y":16.1},{"x":1998.5,"sem":"WiSe 98/99","y":14.8},{"x":1999,"sem":"SoSe 99","y":14.8},{"x":1999.5,"sem":"WiSe 99/00","y":15},{"x":2000,"sem":"SoSe 00","y":15},{"x":2000.5,"sem":"WiSe 00/01","y":13.9},{"x":2001,"sem":"SoSe 01","y":13.9},{"x":2001.5,"sem":"WiSe 01/02","y":17.2},{"x":2002,"sem":"SoSe 02","y":17.2},{"x":2002.5,"sem":"WiSe 02/03","y":12.5},{"x":2003,"sem":"SoSe 03","y":12.5},{"x":2009.5,"sem":"WiSe 09/10","y":15.1},{"x":2010,"sem":"SoSe 10","y":15.2},{"x":2010.5,"sem":"WiSe 10/11","y":19.3},{"x":2011.5,"sem":"WiSe 11/12","y":17.8},{"x":2012,"sem":"SoSe 12","y":18.5},{"x":2013,"sem":"SoSe 13","y":22.5},{"x":2013.5,"sem":"WiSe 13/14","y":20},{"x":2014,"sem":"SoSe 14","y":17.3},{"x":2014.5,"sem":"WiSe 14/15","y":19.3},{"x":2015,"sem":"SoSe 15","y":21},{"x":2016,"sem":"SoSe 16","y":21},{"x":2016.5,"sem":"WiSe 16/17","y":28.7},{"x":2017,"sem":"SoSe 17","y":24},{"x":2017.5,"sem":"WiSe 17/18","y":50.5}],"mag_grads":[{"x":1974,"sem":"SoSe 74","y":2},{"x":1974.5,"sem":"WiSe 74/75","y":1},{"x":1975,"sem":"SoSe 75","y":1},{"x":1975.5,"sem":"WiSe 75/76","y":3},{"x":1976,"sem":"SoSe 76","y":3},{"x":1976.5,"sem":"WiSe 76/77","y":4},{"x":1977,"sem":"SoSe 77","y":3},{"x":1977.5,"sem":"WiSe 77/78","y":0},{"x":1978,"sem":"SoSe 78","y":5},{"x":1978.5,"sem":"WiSe 78/79","y":5},{"x":1979,"sem":"SoSe 79","y":5},{"x":1979.5,"sem":"WiSe 79/80","y":7},{"x":1980,"sem":"SoSe 80","y":6},{"x":1981,"sem":"SoSe 81","y":10},{"x":1981.5,"sem":"WiSe 81/82","y":7},{"x":1982,"sem":"SoSe 82","y":6},{"x":1982.5,"sem":"WiSe 82/83","y":6},{"x":1983,"sem":"SoSe 83","y":10},{"x":1983.5,"sem":"WiSe 83/84","y":11},{"x":1984,"sem":"SoSe 84","y":9},{"x":1984.5,"sem":"WiSe 84/85","y":14},{"x":1985,"sem":"SoSe 85","y":15},{"x":1985.5,"sem":"WiSe 85/86","y":5},{"x":1986,"sem":"SoSe 86","y":20},{"x":1986.5,"sem":"WiSe 86/87","y":10},{"x":1987,"sem":"SoSe 87","y":5},{"x":1987.5,"sem":"WiSe 87/88","y":10},{"x":1988,"sem":"SoSe 88","y":5},{"x":1988.5,"sem":"WiSe 88/89","y":15},{"x":1989,"sem":"SoSe 89","y":8},{"x":1989.5,"sem":"WiSe 89/90","y":12},{"x":1990,"sem":"SoSe 90","y":9},{"x":1990.5,"sem":"WiSe 90/91","y":4},{"x":1991,"sem":"SoSe 91","y":6},{"x":1991.5,"sem":"WiSe 91/92","y":7},{"x":1992,"sem":"SoSe 92","y":13},{"x":1992.5,"sem":"WiSe 92/93","y":13},{"x":1993,"sem":"SoSe 93","y":7},{"x":1993.5,"sem":"WiSe 93/94","y":13},{"x":1994,"sem":"SoSe 94","y":7},{"x":1997.5,"sem":"WiSe 97/98","y":8},{"x":1998,"sem":"SoSe 98","y":7},{"x":1998.5,"sem":"WiSe 98/99","y":17},{"x":1999,"sem":"SoSe 99","y":17},{"x":1999.5,"sem":"WiSe 99/00","y":11},{"x":2000,"sem":"SoSe 00","y":11},{"x":2000.5,"sem":"WiSe 00/01","y":12},{"x":2001,"sem":"SoSe 01","y":12},{"x":2001.5,"sem":"WiSe 01/02","y":16},{"x":2002,"sem":"SoSe 02","y":15},{"x":2002.5,"sem":"WiSe 02/03","y":6},{"x":2003,"sem":"SoSe 03","y":6},{"x":2009.5,"sem":"WiSe 09/10","y":18},{"x":2010,"sem":"SoSe 10","y":13},{"x":2010.5,"sem":"WiSe 10/11","y":12},{"x":2011.5,"sem":"WiSe 11/12","y":13},{"x":2012,"sem":"SoSe 12","y":17},{"x":2013,"sem":"SoSe 13","y":2},{"x":2013.5,"sem":"WiSe 13/14","y":2},{"x":2014,"sem":"SoSe 14","y":3},{"x":2014.5,"sem":"WiSe 14/15","y":4},{"x":2015,"sem":"SoSe 15","y":1},{"x":2016,"sem":"SoSe 16","y":3},{"x":2016.5,"sem":"WiSe 16/17","y":6},{"x":2017,"sem":"SoSe 17","y":1},{"x":2017.5,"sem":"WiSe 17/18","y":2}],"phd_grads":[{"x":1973.5,"sem":"WiSe 73/74","y":1},{"x":1975.5,"sem":"WiSe 75/76","y":2},{"x":1976,"sem":"SoSe 76","y":1},{"x":1976.5,"sem":"WiSe 76/77","y":1},{"x":1977,"sem":"SoSe 77","y":1},{"x":1977.5,"sem":"WiSe 77/78","y":2},{"x":1978,"sem":"SoSe 78","y":1},{"x":1978.5,"sem":"WiSe 78/79","y":0},{"x":1980,"sem":"SoSe 80","y":1},{"x":1980.5,"sem":"WiSe 80/81","y":1},{"x":1981,"sem":"SoSe 81","y":0},{"x":1981.5,"sem":"WiSe 81/82","y":1},{"x":1982,"sem":"SoSe 82","y":1},{"x":1982.5,"sem":"WiSe 82/83","y":1},{"x":1983,"sem":"SoSe 83","y":1},{"x":1983.5,"sem":"WiSe 83/84","y":2},{"x":1984,"sem":"SoSe 84","y":1},{"x":1984.5,"sem":"WiSe 84/85","y":1},{"x":1985,"sem":"SoSe 85","y":1},{"x":1985.5,"sem":"WiSe 85/86","y":0},{"x":1986,"sem":"SoSe 86","y":0},{"x":1986.5,"sem":"WiSe 86/87","y":4},{"x":1987,"sem":"SoSe 87","y":2},{"x":1987.5,"sem":"WiSe 87/88","y":2},{"x":1988,"sem":"SoSe 88","y":0},{"x":1988.5,"sem":"WiSe 88/89","y":2},{"x":1989,"sem":"SoSe 89","y":3},{"x":1989.5,"sem":"WiSe 89/90","y":1},{"x":1990,"sem":"SoSe 90","y":0},{"x":1990.5,"sem":"WiSe 90/91","y":5},{"x":1991,"sem":"SoSe 91","y":3},{"x":1991.5,"sem":"WiSe 91/92","y":2},{"x":1992,"sem":"SoSe 92","y":0},{"x":1992.5,"sem":"WiSe 92/93","y":2},{"x":1993,"sem":"SoSe 93","y":2},{"x":1993.5,"sem":"WiSe 93/94","y":0},{"x":1994,"sem":"SoSe 94","y":0},{"x":1997.5,"sem":"WiSe 97/98","y":1},{"x":1998,"sem":"SoSe 98","y":0},{"x":1998.5,"sem":"WiSe 98/99","y":1},{"x":1999,"sem":"SoSe 99","y":1},{"x":2009.5,"sem":"WiSe 09/10","y":2},{"x":2010,"sem":"SoSe 10","y":2},{"x":2010.5,"sem":"WiSe 10/11","y":1},{"x":2011,"sem":"SoSe 11","y":2},{"x":2011.5,"sem":"WiSe 11/12","y":1},{"x":2012,"sem":"SoSe 12","y":1},{"x":2012.5,"sem":"WiSe 12/13","y":0},{"x":2013,"sem":"SoSe 13","y":2},{"x":2013.5,"sem":"WiSe 13/14","y":0},{"x":2014,"sem":"SoSe 14","y":4},{"x":2014.5,"sem":"WiSe 14/15","y":2},{"x":2015,"sem":"SoSe 15","y":3},{"x":2015.5,"sem":"WiSe 15/16","y":3},{"x":2016,"sem":"SoSe 16","y":3},{"x":2016.5,"sem":"WiSe 16/17","y":7},{"x":2017,"sem":"SoSe 17","y":3},{"x":2017.5,"sem":"WiSe 17/18","y":3},{"x":2018,"sem":"SoSe 18","y":2},{"x":2018.5,"sem":"WiSe 18/19","y":1},{"x":2019,"sem":"SoSe 19","y":6},{"x":2019.5,"sem":"WiSe 19/20","y":4},{"x":2020,"sem":"SoSe 20","y":1},{"x":2020.5,"sem":"WiSe 20/21","y":1},{"x":2021,"sem":"SoSe 21","y":4},{"x":2021.5,"sem":"WiSe 21/22","y":2},{"x":2022,"sem":"SoSe 22","y":3},{"x":2022.5,"sem":"WiSe 22/23","y":2},{"x":2023,"sem":"SoSe 23","y":1},{"x":2023.5,"sem":"WiSe 23/24","y":1},{"x":2024,"sem":"SoSe 24","y":4},{"x":2024.5,"sem":"WiSe 24/25","y":2},{"x":2025,"sem":"SoSe 25","y":2}]};
+
+const C = { total:'#5b9cf6', bach:'#34d399', mast:'#fb923c', mag:'#a78bfa', phd:'#fbbf24', grid:'rgba(255,255,255,0.06)', tick:'#7a7870' };
+
+// ── Shared linear x-axis config (x = semOrder float like 1973.5) ──
+// Tick callback: show label every 5 years on winter semester (x ends in .5, year % 5 === 0)
+function xAxis(min, max) {
+  return {
+    type: 'linear', min, max,
+    ticks: {
+      color: C.tick,
+      font: { size: 10, family: "'DM Mono',monospace" },
+      maxRotation: 45,
+      stepSize: 0.5,   // every semester internally, but label filter below
+      callback: v => {
+        // v is e.g. 1950, 1950.5, 1955, 1955.5 ...
+        const yr = Math.floor(v);
+        const isWinter = (v - yr) > 0.3;  // 0.5 = winter
+        if (isWinter && yr % 5 === 0) return yr + '/' + String(yr+1).slice(2);
+        return null;
+      }
+    },
+    grid: { color: C.grid }, border: { color: 'rgba(255,255,255,0.1)' }
+  };
+}
+
+function yAxis(min, max, fmt) {
+  return {
+    min, max,
+    ticks: {
+      color: C.tick, font: { size:11, family:"'DM Mono',monospace" },
+      callback: fmt || (v => v)
+    },
+    grid: { color: C.grid }, border: { color: 'rgba(255,255,255,0.1)' }
+  };
+}
+
+function baseOpts(xmin, xmax, ymin, ymax, yFmt) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { title: items => {
+        const v = items[0].parsed.x;
+        // Find closest sem label
+        const yr = Math.floor(v);
+        return (v - yr) > 0.3 ? 'WiSe ' + String(yr).slice(2) + '/' + String(yr+1).slice(2) : 'SoSe ' + String(yr).slice(2);
+      }}}
+    },
+    scales: { x: xAxis(xmin, xmax), y: yAxis(ymin, ymax, yFmt) },
+    elements: { point: { radius: 1.5, hoverRadius: 4 }, line: { tension: 0.35, borderWidth: 2 } }
+  };
+}
+
+function line(key, color, label, dash=[]) {
+  return { label, data: D[key], borderColor: color, backgroundColor: color+'22',
+    borderDash: dash, pointBackgroundColor: color, spanGaps: false, fill: false };
+}
+
+function bar(key, color, label) {
+  return { label, data: D[key], backgroundColor: color+'cc', borderColor: color, borderWidth: 1 };
+}
+
+function mkLine(id, datasets, opts) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, { type:'line', data:{ datasets }, options: opts });
+}
+
+function mkBar(id, datasets, xmin, xmax, ymax) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, { type:'bar', data:{ datasets }, options: {
+    ...baseOpts(xmin, xmax, 0, ymax),
+    elements: {},
+    barPercentage: 0.9,
+    categoryPercentage: 1.0
+  }});
+}
+
+// ── Enrollment ──
+mkLine('c-enroll-all', [
+  line('ts_total',  C.total, 'Gesamt'),
+  line('bach_total',C.bach,  'SKA Bachelor'),
+  line('mast_total',C.mast,  'SKA Master'),
+  line('mag_total', C.mag,   'Eth. Magister', [4,2]),
+], baseOpts(1950, 2026, 0, 1400));
+
+mkLine('c-enroll-ska', [
+  line('bach_total', C.bach, 'SKA Bachelor'),
+  line('mast_total', C.mast, 'SKA Master'),
+], baseOpts(2005, 2026, 0, 400));
+
+mkLine('c-enroll-eth', [
+  line('mag_total', C.mag, 'Eth. Magister', [4,2]),
+], baseOpts(1970, 2020, 0, 1300));
+
+// ── Female share ──
+const pctFmt = v => v + '%';
+mkLine('c-gender', [
+  line('ts_fem',   C.total, 'Gesamt'),
+  line('bach_fem', C.bach,  'SKA Bachelor'),
+  line('mast_fem', C.mast,  'SKA Master'),
+  line('mag_fem',  C.mag,   'Eth. Magister', [4,2]),
+], baseOpts(1970, 2026, 0, 100, pctFmt));
+
+// ── Intl share ──
+mkLine('c-intl', [
+  line('ts_intl',   C.total, 'Gesamt'),
+  line('bach_intl', C.bach,  'SKA Bachelor'),
+  line('mast_intl', C.mast,  'SKA Master'),
+  line('mag_intl',  C.mag,   'Eth. Magister', [4,2]),
+], baseOpts(1970, 2026, 0, 40, pctFmt));
+
+// ── Grads ──
+mkBar('c-grads-bach', [bar('bach_grads', C.bach, 'Abschlüsse')], 2008, 2026, 35);
+mkBar('c-grads-mast', [bar('mast_grads', C.mast, 'Abschlüsse')], 2010, 2026, 15);
+mkBar('c-grads-mag',  [bar('mag_grads',  C.mag,  'Abschlüsse')], 1973, 2019, 25);
+mkBar('c-grads-phd',  [bar('phd_grads',  C.phd,  'Promotionen')], 1973, 2026, 8);
+
+// ── Grades ──
+mkLine('c-grade', [
+  line('bach_grade', C.bach, 'SKA Bachelor'),
+  line('mast_grade', C.mast, 'SKA Master'),
+  line('mag_grade',  C.mag,  'Eth. Magister', [4,2]),
+], baseOpts(2008, 2026, 0.9, 2.8));
+
+// ── Duration ──
+mkLine('c-dur-ska', [
+  line('bach_dur', C.bach, 'SKA Bachelor'),
+  line('mast_dur', C.mast, 'SKA Master'),
+], baseOpts(2009, 2026, 0, 15));
+
+mkLine('c-dur-mag', [
+  line('mag_dur', C.mag, 'Eth. Magister', [4,2]),
+], baseOpts(1973, 2019, 0, 55));
+
+// ── Metrics ──
+function lastVal(key) { const d=D[key]; for(let i=d.length-1;i>=0;i--) if(d[i].y!=null) return d[i].y; return null; }
+function sumVal(key)  { return D[key].reduce((a,d)=>a+(d.y||0),0); }
+function avgVal(key)  { const v=D[key].filter(d=>d.y!=null).map(d=>d.y); return v.length?v.reduce((a,b)=>a+b)/v.length:null; }
+
+const metricDefs = {
+  enroll: [
+    {lbl:'Letzte Gesamtzahl', val:lastVal('ts_total'), fmt:v=>Math.round(v)+' Stud.', color:C.total},
+    {lbl:'SKA Bachelor aktuell', val:lastVal('bach_total'), fmt:v=>v+' Stud.', color:C.bach},
+    {lbl:'SKA Master aktuell', val:lastVal('mast_total'), fmt:v=>v+' Stud.', color:C.mast},
+    {lbl:'Eth. Mag. (Höhepunkt)', val:1167, fmt:v=>v+' Stud.', color:C.mag},
+  ],
+  gender: [
+    {lbl:'Frauenanteil gesamt (WiSe 25/26)', val:lastVal('ts_fem'), fmt:v=>Math.round(v)+'%', color:C.total},
+    {lbl:'Frauenanteil Bachelor (WiSe 25/26)', val:lastVal('bach_fem'), fmt:v=>Math.round(v)+'%', color:C.bach},
+    {lbl:'Frauenanteil Master (WiSe 25/26)', val:lastVal('mast_fem'), fmt:v=>Math.round(v)+'%', color:C.mast},
+    {lbl:'Historischer Höchststand (WiSe 12/13)', val:82, fmt:v=>v+'%', color:C.mag},
+  ],
+  intl: [
+    {lbl:'Ausländeranteil gesamt (WiSe 25/26)', val:lastVal('ts_intl'), fmt:v=>Math.round(v)+'%', color:C.total},
+    {lbl:'Ausländeranteil Bachelor (WiSe 25/26)', val:lastVal('bach_intl'), fmt:v=>Math.round(v)+'%', color:C.bach},
+    {lbl:'Ausländeranteil Master (WiSe 25/26)', val:lastVal('mast_intl'), fmt:v=>Math.round(v)+'%', color:C.mast},
+    {lbl:'Historischer Tiefstand (SoSe 75–85)', val:5, fmt:v=>v+'%', color:C.mag},
+  ],
+  grads: [
+    {lbl:'Bachelor gesamt', val:sumVal('bach_grads'), fmt:v=>Math.round(v)+' Abschl.', color:C.bach},
+    {lbl:'Master gesamt', val:sumVal('mast_grads'), fmt:v=>Math.round(v)+' Abschl.', color:C.mast},
+    {lbl:'Magister gesamt', val:sumVal('mag_grads'), fmt:v=>Math.round(v)+' Abschl.', color:C.mag},
+    {lbl:'Promotionen gesamt', val:sumVal('phd_grads'), fmt:v=>Math.round(v)+' Prom.', color:C.phd},
+  ],
+  grade: [
+    {lbl:'Ø Note Bachelor', val:avgVal('bach_grade'), fmt:v=>v.toFixed(2), color:C.bach},
+    {lbl:'Ø Note Master', val:avgVal('mast_grade'), fmt:v=>v.toFixed(2), color:C.mast},
+    {lbl:'Ø Note Magister', val:avgVal('mag_grade'), fmt:v=>v.toFixed(2), color:C.mag},
+    {lbl:'Skala', val:null, fmt:()=>'1.0 = beste Note', color:C.total},
+  ],
+  dur: [
+    {lbl:'Ø Sem. Bachelor', val:avgVal('bach_dur'), fmt:v=>v.toFixed(1)+' Sem.', color:C.bach},
+    {lbl:'Ø Sem. Master', val:avgVal('mast_dur'), fmt:v=>v.toFixed(1)+' Sem.', color:C.mast},
+    {lbl:'Ø Sem. Magister', val:avgVal('mag_dur'), fmt:v=>v.toFixed(1)+' Sem.', color:C.mag},
+    {lbl:'Regelstudienzeit', val:null, fmt:()=>'6 / 4 Sem.', color:C.total},
+  ],
+};
+
+Object.entries(metricDefs).forEach(([id,defs])=>{
+  const el = document.getElementById('m-'+id);
+  if (!el) return;
+  el.innerHTML = defs.map(d=>`
+    <div class="metric">
+      <div class="val">${d.val!=null?d.fmt(d.val):d.fmt()}</div>
+      <div class="lbl"><span class="dot" style="background:${d.color}"></span>${d.lbl}</div>
+    </div>`).join('');
+});
+
+function show(id,btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+const HLS_DATA = ["SoSe 1982: 1.273 Studierende - der historische Hoechststand. In 12 Jahren wuchs die Zahl von 51 auf das 25-Fache.","Von ~1.300 SKA-Bachelor-Studierenden seit 2006 haben 567 abgeschlossen (44%). Im BA VWL liegt die Quote bei 35%.","Der Frauenanteil stieg von 35% (WiSe 72/73) auf 82% (WiSe 12/13) und liegt heute bei 75-80%.","Die durchschnittliche Studiendauer im SKA Bachelor betraegt 8,5 Semester - die Regelstudienzeit ist 6.","Der Auslaenderanteil stieg von 5% in den 1970ern auf 24% im WiSe 25/26 - ein historischer Hoechststand.","Ab WiSe 18/19 waren keine Studierenden mehr im Magister eingeschrieben.","Im WiSe 17/18 schloss jemand nach 50,5 Semestern ab - das sind etwa 25 Jahre.","Im PhD-Programm sind inzwischen ueber 60% internationale Studierende."];
+const QS_DATA = [{"q":"Wie viele Studierende hatte das Institut auf seinem Höhepunkt (SoSe 1982)?","opts":["ca. 300","ca. 600","ca. 1.300","ca. 2.500"],"ans":2,"exp":"SoSe 1982: 1.273 Studierende — in nur 12 Jahren wuchs die Zahl von 51 auf das 25-Fache."},{"q":"Wie hoch ist der Frauenanteil im Institut heute (ca. 2025)?","opts":["ca. 50%","ca. 60%","ca. 70%","ca. 80%"],"ans":3,"exp":"Der Frauenanteil liegt seit etwa 2015 stabil bei 75–80%. Der historische Höchststand war 82% im WiSe 2012/13."},{"q":"Wie lange studieren SKA-Bachelor-Studierende durchschnittlich bis zum Abschluss?","opts":["Genau 6 Semester (Regelstudienzeit)","ca. 7 Semester","ca. 8–9 Semester","ca. 12 Semester"],"ans":2,"exp":"Im Durchschnitt 8,5 Semester — deutlich mehr als die Regelstudienzeit von 6 Semestern."},{"q":"Von den SKA-Bachelor-Studierenden seit 2006 — wie viele haben bisher abgeschlossen?","opts":["Fast alle (über 80%)","Etwa die Hälfte (44%)","Etwa ein Drittel","Weniger als ein Viertel"],"ans":1,"exp":"567 von ~1.300 haben abgeschlossen — das sind 44%, knapp die Hälfte. Im BA VWL liegt die Quote bei 35%."},{"q":"Wie hat sich der Ausländeranteil seit den 1970ern entwickelt?","opts":["Er ist gleich geblieben","Er ist leicht gestiegen (auf ca. 12%)","Er hat sich verfünffacht (von 5% auf 24%)","Er ist gesunken"],"ans":2,"exp":"Von ca. 5% in den 1970ern auf 24% im WiSe 2025/26 — ein historischer Höchststand."},{"q":"Wann wurde 'Studierende' statt 'Studenten' eingeführt?","opts":["In den 1970ern","In den 1980ern","Um 1990","Erst nach 2000"],"ans":2,"exp":"Ab WiSe 1989/90 heißt es 'Studierende'. Davor gab es im SoSe 1989 einmalig 'StudentInnen'."},{"q":"Wann wurde das Institut in 'SKA' umbenannt?","opts":["In den 1990ern","Anfang der 2000er","Um 2005","Um 2012"],"ans":3,"exp":"Ab WiSe 2012/13 heißt es Institut für Sozial- und Kulturanthropologie (SKA)."},{"q":"Wie entwickelte sich die Studierendenzahl nach dem Höhepunkt 1982?","opts":["Sie blieb stabil hoch","Sie sank langsam über Jahrzehnte","Sie brach innerhalb weniger Jahre stark ein","Sie stieg weiter"],"ans":2,"exp":"Nach 1.273 (SoSe 1982) sank die Zahl sehr schnell — WiSe 1983/84 nur noch 880. Tiefpunkt: SoSe 2010 mit 364."},{"q":"Was ist auffällig an der Studiendauer im Vergleich zur Regelstudienzeit?","opts":["Die meisten schließen pünktlich ab","Die meisten schließen ein Semester zu spät ab","Die tatsächliche Dauer ist deutlich länger","Die Regelstudienzeit ist zu lang angesetzt"],"ans":2,"exp":"Bachelor: Regelstudienzeit 6 Semester, Durchschnitt 8,5. Master: Regelstudienzeit 4, Durchschnitt 7,6."},{"q":"Wie lang war die längste bekannte Magisterstudienzeit?","opts":["Ca. 10 Semester (5 Jahre)","Ca. 20 Semester (10 Jahre)","Ca. 30 Semester (15 Jahre)","Ca. 50 Semester (25 Jahre)"],"ans":3,"exp":"Im WiSe 2017/18 schloss jemand nach 50,5 Semestern ab — das sind knapp 25 Jahre."},{"q":"Wann hörte der Ethnologie-Magister auf, neue Studierende aufzunehmen?","opts":["In den 1990ern","Um 2000","Um 2005–2006","Erst nach 2010"],"ans":2,"exp":"Mit der Einführung des SKA-Bachelors (WiSe 2005/06) nahm der Magister keine neuen Studierenden mehr auf."},{"q":"Wie hat sich der Frauenanteil seit den frühen 1970ern verändert?","opts":["Er war immer schon über 70%","Er stieg von ca. 35% auf über 75%","Er sank von 80% auf heute 50%","Er blieb bei ca. 50%"],"ans":1,"exp":"WiSe 1972/73: ca. 35% Frauen. Heute: 75–80%. Ein stetiger Anstieg über fünf Jahrzehnte."},{"q":"Wie viele Promotionen wurden insgesamt am Institut abgeschlossen?","opts":["Weniger als 50","Ca. 100–150","Ca. 300–400","Mehr als 500"],"ans":1,"exp":"Ca. 126 Promotionen, von WiSe 1973/74 bis heute."},{"q":"Wann zog das Institut an seinen heutigen Standort (Landoltweg 9) um?","opts":["In den 1980ern","In den 1990ern","Um 2007","Um 2015"],"ans":2,"exp":"Im März 2007 zog das Institut in den Landoltweg 9-11, 14195 Berlin um."},{"q":"Wie viele Studierende sind derzeit (WiSe 2025/26) eingeschrieben?","opts":["Weniger als 200","Ca. 300–400","Ca. 460","Über 600"],"ans":2,"exp":"Im WiSe 2025/26 sind ca. 460 Studierende eingeschrieben — SKA Bachelor, Master und Promotion."}];
+
+// ── Highlights fix (re-init with correct data) ──
+// HLS may already be defined; if so override
+if(typeof HLS !== 'undefined') {
+  HLS.length = 0;
+  HLS_DATA.forEach(function(h){ HLS.push(h); });
+} else {
+  window.HLS = HLS_DATA;
+}
+// Re-init highlights
+(function(){
+  var idx=0;
+  var items=HLS_DATA;
+  function show(d){
+    idx=(idx+d+items.length)%items.length;
+    var t=document.getElementById('hl-t');
+    var c=document.getElementById('hl-c');
+    if(t) t.textContent=items[idx];
+    if(c) c.textContent=(idx+1)+'/'+items.length;
+  }
+  window.hlNav=function(d){show(d);};
+  show(0);
+})();
+
+// ── Quiz ──
+var qi=0, sc=0, qa=false, shuf=[];
+function shuffle(a){return a.slice().sort(function(){return Math.random()-.5;});}
+
+function initQuiz(){
+  shuf=shuffle(QS_DATA); qi=0; sc=0; qa=false; renderQ();
+}
+
+function renderQ(){
+  var el=document.getElementById('qcon');
+  if(!el) return;
+  if(qi>=shuf.length){
+    var pct=Math.round(sc/shuf.length*100);
+    var msg=pct>=80?'Ausgezeichnet!':pct>=60?'Gut gemacht!':'Noch Luft nach oben!';
+    el.innerHTML='<div class="qcard qscore"><span class="big">'+sc+' / '+shuf.length+'</span><span class="msg">'+msg+' ('+pct+'%)</span><button class="qrestart" onclick="initQuiz()">Nochmal spielen</button></div>';
+    return;
+  }
+  var q=shuf[qi]; qa=false;
+  var opts=q.opts.map(function(o,i){return '<button class="qopt" id="qo'+i+'" onclick="qAns('+i+')">'+o+'</button>';}).join('');
+  el.innerHTML='<div class="qcard"><div class="qnum">Frage '+(qi+1)+' von '+shuf.length+' &nbsp;&middot;&nbsp; <span class="qprog">'+sc+' richtig</span></div><div class="qtxt">'+q.q+'</div><div class="qopts">'+opts+'</div><div class="qfb" id="qfb"></div></div><div class="qnav-row"><span class="qprog">'+(qi+1)+'/'+shuf.length+'</span><button class="qnxt" id="qnxt" onclick="qNext()">N&auml;chste &rarr;</button></div>';
+}
+
+function qAns(i){
+  if(qa) return; qa=true;
+  var q=shuf[qi], fb=document.getElementById('qfb');
+  q.opts.forEach(function(_,j){
+    var b=document.getElementById('qo'+j); b.disabled=true;
+    if(j===q.ans) b.className='qopt '+(i===q.ans?'ok':'sh');
+    else if(j===i) b.className='qopt no';
+  });
+  if(i===q.ans){sc++;fb.className='qfb on ok';fb.innerHTML='&#10003; Richtig! '+q.exp;}
+  else{fb.className='qfb on no';fb.innerHTML='&#10007; Leider falsch. '+q.exp;}
+  document.getElementById('qnxt').style.display='inline-block';
+}
+
+function qNext(){ qi++; renderQ(); }
+
+// patch show() to init quiz on first open
+var _showBase = window.show;
+window.show = function(id, btn){
+  _showBase(id, btn);
+  if(id==='quiz' && !window._qzInit){ window._qzInit=true; initQuiz(); }
+};
+
+</script>
+</body>
+</html>
