@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Institut für Ethnologie / SKA — FU Berlin</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #FAFAF8;
+  color: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.2rem;
+}
+.container { max-width: 560px; width: 100%; }
+.eyebrow {
+  font-size: .72rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: #888880; margin-bottom: .7rem;
+}
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 600;
+  letter-spacing: -.02em; line-height: 1.15; margin-bottom: .5rem;
+}
+h1 span { color: #2563A8; }
+.subtitle { font-size: .88rem; color: #888880; margin-bottom: 2rem; line-height: 1.6; }
+.cards { display: flex; flex-direction: column; gap: .9rem; margin-bottom: 2rem; }
+.card {
+  display: block; text-decoration: none; background: #fff;
+  border: 1px solid #E0DED8; border-radius: 10px; padding: 1.2rem 1.4rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+.card:hover { border-color: #2563A8; box-shadow: 0 4px 20px rgba(37,99,168,.08); }
+.card-label {
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: #2563A8; margin-bottom: .35rem;
+}
+.card-title { font-size: 1rem; font-weight: 600; color: #1a1a1a; margin-bottom: .3rem; }
+.card-desc { font-size: .8rem; color: #888880; line-height: 1.5; }
+.card-arrow { float: right; font-size: 1rem; color: #2563A8; margin-top: .1rem; }
+.about {
+  background: #fff; border: 1px solid #E0DED8; border-radius: 10px;
+  padding: 1.2rem 1.4rem; margin-bottom: 1.5rem;
+}
+.about-label {
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: #888880; margin-bottom: .6rem;
+}
+.about p { font-size: .82rem; color: #444; line-height: 1.65; margin-bottom: .5rem; }
+.about p:last-child { margin-bottom: 0; color: #888880; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="eyebrow">Freie Universität Berlin</p>
+  <h1>Institut für Ethnologie / <span>SKA</span></h1>
+  <p class="subtitle">Teste dein Wissen über das Institut — Statistiken und Lehrgeschichte seit 1949.</p>
+
+  <div class="cards">
+    <a class="card" href="SKA_Statistik_QUIZ.html">
+      <span class="card-arrow">→</span>
+      <div class="card-label">Statistiken</div>
+      <div class="card-title">&#127919; Quiz: Studierendenstatistiken</div>
+      <div class="card-desc">
+        15 Fragen zu Zahlen, Trends und Entwicklungen —
+        Frauenanteil, Studiendauer, Abschlussquoten und mehr.
+      </div>
+    </a>
+    <a class="card" href="VVZ_QUIZ.html">
+      <span class="card-arrow">→</span>
+      <div class="card-label">Vorlesungsverzeichnisse</div>
+      <div class="card-title">&#127919; Quiz: Lehrgeschichte 1949–2026</div>
+      <div class="card-desc">
+        15 Fragen zum ersten Auftreten von Themen —
+        Kolonialismus, Gender, Queer, Dekolonialität und mehr.
+      </div>
+    </a>
+  </div>
+
+  <div class="about">
+    <div class="about-label">Über dieses Projekt</div>
+    <p>
+      Diese Quizze basieren auf den Studierendenstatistiken (SoSe 1950 – WiSe 2025/26)
+      und den vollständig transkribierten Vorlesungsverzeichnissen (SoSe 1949 – SoSe 2026)
+      des Instituts für Sozial- und Kulturanthropologie der FU Berlin.
+    </p>
+    <p>Die Daten stammen aus gedruckten Statistikheften der Zentralbibliothek
+      (Signatur AL 17800 F862) und Online-PDFs der FU.</p>
+  </div>
+
+</div>
+</body>
+</html>
