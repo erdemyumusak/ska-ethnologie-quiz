@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Institut für Ethnologie / SKA — FU Berlin</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: #FAFAF8;
+  color: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.2rem;
+}
+.container { max-width: 560px; width: 100%; }
+.eyebrow {
+  font-size: .72rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: #888880; margin-bottom: .7rem;
+}
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 600;
+  letter-spacing: -.02em; line-height: 1.15; margin-bottom: .5rem;
+}
+h1 span { color: #2563A8; }
+.subtitle { font-size: .88rem; color: #888880; margin-bottom: 2rem; line-height: 1.6; }
+.cards { display: flex; flex-direction: column; gap: .9rem; margin-bottom: 2rem; }
+.card {
+  display: block; text-decoration: none; background: #fff;
+  border: 1px solid #E0DED8; border-radius: 10px; padding: 1.2rem 1.4rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+.card:hover { border-color: #2563A8; box-shadow: 0 4px 20px rgba(37,99,168,.08); }
+.card-label {
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: #2563A8; margin-bottom: .35rem;
+}
+.card-title { font-size: 1rem; font-weight: 600; color: #1a1a1a; margin-bottom: .3rem; }
+.card-desc { font-size: .8rem; color: #888880; line-height: 1.5; }
+.card-arrow { float: right; font-size: 1rem; color: #2563A8; margin-top: .1rem; }
+.about {
+  background: #fff; border: 1px solid #E0DED8; border-radius: 10px;
+  padding: 1.2rem 1.4rem; margin-bottom: 1.5rem;
+}
+.about-label {
+  font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: #888880; margin-bottom: .6rem;
+}
+.about p { font-size: .82rem; color: #444; line-height: 1.65; margin-bottom: .5rem; }
+.about p:last-child { margin-bottom: 0; color: #888880; }
+.footer { font-size: .72rem; color: #bbb; text-align: center; line-height: 1.8; }
+.footer a { color: #bbb; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="eyebrow">Freie Universität Berlin</p>
+  <h1>Institut für Ethnologie / <span>SKA</span></h1>
+  <p class="subtitle">Studierendenstatistiken 1950–2026 und Vorlesungsverzeichnisse 1949–2026</p>
+
+  <div class="cards">
+    <a class="card" href="https://erdemyumusak.github.io/ska-ethnologie-statistik/">
+      <span class="card-arrow">→</span>
+      <div class="card-label">Interaktives Dashboard</div>
+      <div class="card-title">Studierendenstatistiken 1950–2026</div>
+      <div class="card-desc">
+        Eingeschriebene Studierende, Frauenanteil, Ausländeranteil,
+        Abschlüsse, Noten und Studiendauer — semesterweise.
+      </div>
+    </a>
+    <a class="card" href="https://erdemyumusak.github.io/vorlesungsverzeichnis/">
+      <span class="card-arrow">→</span>
+      <div class="card-label">Kursarchiv & Analyse</div>
+      <div class="card-title">Vorlesungsverzeichnisse 1949–2026</div>
+      <div class="card-desc">
+        5.042 Lehrveranstaltungen durchsuchen — globale Ereignisse
+        und Kursreaktionen, erstes Auftreten von Themen, alle Semester.
+      </div>
+    </a>
+  </div>
+
+  <div class="about">
+    <div class="about-label">Über dieses Projekt</div>
+    <p>
+      Diese Seite entstand aus dem Wunsch, dem Institut für Sozial- und Kulturanthropologie
+      der FU Berlin etwas zu hinterlassen — nach fünf Jahren als Studierender (2021–2026).
+      Die Statistiken stammen aus gedruckten Statistikheften der Zentralbibliothek
+      (Signatur AL 17800 F862) und Online-PDFs der FU. Die Vorlesungsverzeichnisse
+      wurden vollständig transkribiert, von SoSe 1949 bis SoSe 2026.
+    </p>
+    <p>
+      Was fehlte, war die Zusammenführung dieser Daten über Jahrzehnte —
+      wer hat studiert, was wurde gelehrt, wie hat das Institut auf die Welt reagiert.
+    </p>
+    <p></p>
+  </div>
+
+  <p class="footer">
+    
+  </p>
+
+</div>
+</body>
+</html>
